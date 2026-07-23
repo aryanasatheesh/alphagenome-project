@@ -2,13 +2,12 @@
 
 **Aryana Satheesh · Luo Lab (PI: Prof. Chongyuan Luo) · UCLA**
 **Mentor: Cuining (Choo) Liu**
-**Capstone research project · 2026–2027**
 
 ---
 
 ## Project overview
 
-This project uses [AlphaGenome](https://github.com/genomicsxai/alphagenome-pytorch) (PyTorch port) to predict whether genetic variants associated with schizophrenia (SCZ) and autism spectrum disorder (ASD) alter chromatin accessibility in specific fetal brain cell types.
+This project uses [AlphaGenome](https://github.com/genomicsxai/alphagenome-pytorch) (PyTorch port) to predict whether non-coding genetic variants associated with schizophrenia (SCZ) and autism spectrum disorder (ASD) alter chromatin accessibility in specific fetal brain cell types.
 
 The core approach is **in silico mutagenesis (ISM)**: for each GWAS risk variant, we extract a ~131 kb window of hg38 sequence centered on the SNP, run it through AlphaGenome with the reference allele, swap in the alternate allele and run again, then compare the predicted chromatin accessibility signals between the two. The difference — the delta track — tells us whether and where the variant is predicted to open or close chromatin, and in which cell types.
 
