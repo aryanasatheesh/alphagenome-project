@@ -1,0 +1,35 @@
+# Large data files — stay on disk only
+*.gz
+*.fa
+*.fa.fai
+*.safetensors
+*.sif
+*.tar.gz
+*.npz
+*.bigwig
+*.bw
+
+# GWAS summary statistics (too large for git)
+phase1/data/CLOZUK*
+phase1/data/*.fix
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
+
+# Conda / venv
+conda_pkgs/
+pip_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Results data (large tensors) — keep scripts, not outputs
+results/ism/*.npz
+results/pretrained_baseline/*.npz
+
+# Outputs directory
+phase2/outputs/
