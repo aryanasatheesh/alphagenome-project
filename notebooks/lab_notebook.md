@@ -5,8 +5,141 @@
 
 This notebook documents every work session in chronological order: what was run, what the output was, decisions made, and any blockers. After each completed phase, these notes get converted into thesis-ready methods prose.
 
----
+## Session 3 - August 3, 2026
 
+---
+## Session 2 — July 23-24, 2026
+**Goal:** Reorganize project file structure, set up GitHub repo, and configure VS Code
+ 
+### GitHub setup
+Created private repo and pushed initial commit:
+```bash
+# on Hoffman2
+git init
+git add .gitignore README.md phase1/get_lead_snps.py phase2/extract_and_mutate.py docs/ notebooks/
+git commit -m "Initial commit: project structure, get_lead_snps.py, extract_and_mutate.py, lab notebook"
+git remote add origin https://github.com/aryanasatheesh/alphagenome-project.git
+git push -u origin master
+```
+Data files (`.gz`, `.fa`, `.safetensors`, `.npz`, `.bw`) are excluded from git via `.gitignore` — they stay on disk only and are too large for version control.
+
+Authentication uses a GitHub Personal Access Token (classic) with `repo` scope, entered as the password when pushing.
+ 
+### Git workflow going forward
+```bash
+# standard workflow after a work session:
+git add -A
+git commit -m "description of changes"
+git push
+ 
+# when switching machines:
+git pull    # on the machine you're starting work on
+# ... do work ...
+git add -A && git commit -m "message" && git push
+# on the other machine later:
+git pull
+```
+ 
+GitHub is the bridge between Mac and Hoffman2. Code lives on GitHub; large data files live on each machine separately.
+ 
+### VS Code setup
+- Installed VS Code on Mac
+- Signed in with GitHub
+- Installed **Remote - SSH** extension (by Microsoft)
+- Attempted to connect directly to Hoffman2 via Remote-SSH — **failed** due to:
+  - `noexec` restriction on Hoffman2 home directory filesystem (VS Code server binary can't run)
+  - Symlink workaround to `/u/project/cluo/aryasath/.vscode-server` partially worked but server still crashed with "channel closed" error
+- **Workaround adopted:** Clone repo locally on Mac, edit in VS Code, push to GitHub, pull on Hoffman2. SSH to Hoffman2 from a VS Code terminal tab for remote work.
+```bash
+# on Mac
+cd ~
+git clone https://github.com/aryanasatheesh/alphagenome-project.git
+# then File → Open Folder → ~/alphagenome-project in VS Code
+```
+ 
+### Status
+GitHub repo live, VS Code configured, git sync verified (push from Mac → pull on Hoffman2 works).
+ 
+
+**Goal:** Complete environment setup on Hoffman2, verify both machines ready
+ 
+### Hoffman2 environment setup
+ 
+**Step 1: Create conda environment**
+```bash
+module load anaconda3
+conda create -n alphagenome_env python=3.12 -y
+conda activate alphagenome_env
+```
+Created with Python 3.12.11.
+ 
+**To activate in future sessions:**
+```bash
+module load anaconda3
+conda activate alphagenome_env
+```
+ 
+**Step 2: Install alphagenome-pytorch**
+Direct `pip install alphagenome-pytorch` failed because numpy couldn't compile from source (Hoffman2's GCC 4.8.5 is too old for the meson build system). Fix:
+```bash
+conda install numpy -y                      # prebuilt binary, avoids GCC issue
+pip install alphagenome-pytorch --no-deps    # install without re-pulling numpy
+pip install torch safetensors einx           # install remaining dependencies
+```
+Installed: alphagenome-pytorch==0.3.0, torch==2.6.0+cu124, numpy==2.0.1, einx==0.4.3, safetensors==0.8.0
+ 
+**Step 3: Download model weights**
+```bash
+mkdir -p ~/alphagenome-weights
+cd ~/alphagenome-weights
+pip install huggingface_hub
+hf download gtca/alphagenome_pytorch model_fold_0.safetensors --local-dir .
+# downloaded 921 MB to ~/alphagenome-weights/model_fold_0.safetensors
+```
+ 
+**Step 4: Verification**
+```bash
+python3 -c "
+import torch
+from alphagenome_pytorch import AlphaGenome
+print('torch:', torch.__version__)
+print('cuda available:', torch.cuda.is_available())
+print('alphagenome imported OK')
+"
+```
+Output:
+```
+torch: 2.6.0+cu124
+cuda available: False    # expected — login nodes have no GPU
+alphagenome imported OK
+```
+ 
+Model load test on login node failed with OOM (`can't allocate memory`) — this is expected because login nodes have limited RAM. The model (~920 MB parameters) needs a compute node. Imports and weight download are verified; full forward pass will be confirmed when we submit the first GPU job.
+ 
+### Environment summary — both machines
+ 
+| Component | Mac (local dev) | Hoffman2 (batch compute) |
+|---|---|---|
+| Python | 3.12.13 | 3.12.11 |
+| torch | 2.13.0 | 2.6.0+cu124 |
+| alphagenome-pytorch | 0.3.1 | 0.3.0 |
+| numpy | 2.5.1 | 2.0.1 |
+| GPU type | MPS (Apple Silicon) | CUDA (on compute nodes) |
+| Model weights | ~/alphagenome-weights/ | ~/alphagenome-weights/ |
+| Activate env | `source ~/alphagenome-env/bin/activate` | `module load anaconda3 && conda activate alphagenome_env` |
+| Run scripts | `PYTORCH_ENABLE_MPS_FALLBACK=1 python3 script.py` | submit via SLURM/qsub |
+ 
+### How switching between machines works
+- **Code** (scripts, notebooks, docs): lives on GitHub. Push from one machine, pull on the other.
+- **Large data** (GWAS files, hg38.fa, model weights, bigwigs): stays on each machine separately. Too large for git.
+- **Rule of thumb:** develop and test on Mac with small inputs (1–5 SNPs), push to GitHub, pull on Hoffman2, run at scale (141+ SNPs, batch GPU jobs).
+### Status
+Task 2 complete. Both environments verified and ready.
+ 
+**Next:** Task 4 — Download PGC3 SCZ GWAS, rerun data acquisition pipeline, document liftover logic thoroughly.
+
+---
+ 
 ## Session 1
 **Goal:** Get AlphaGenome running locally on Mac (Task 1 of summer plan)
 
@@ -41,7 +174,7 @@ pip install alphagenome-pytorch
 ```
 Installed cleanly. Key packages: alphagenome-pytorch==0.3.1, torch==2.13.0, numpy==2.5.1
 
-**To reactivate this environment in future sessions:**
+**To reactivate this environment in future sessions (locally):**
 ```bash
 source ~/alphagenome-env/bin/activate
 ```
@@ -233,4 +366,3 @@ Note: `extract_sequences.py` was written assuming hg38 input — after liftover 
 Task 3 complete. GWAS confirmed hg19. Liftover is the immediate next coding step before ISM can run.
  
 ---
-*Sessions 1–3 complete. Next session: liftover pipeline on Hoffman2, then write ISM inference script.*
