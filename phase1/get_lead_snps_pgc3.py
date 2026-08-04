@@ -84,9 +84,16 @@ N_PILOT = 10
 VALID_BASES = {'A', 'C', 'G', 'T'}
 
 
-def read_gwas(filepath):
-    """Read PGC3 VCF-format summary statistics, skipping ## header lines."""
-    snps = []
+def read_and_filter_gwas(filepath, p_threshold=P_THRESHOLD):
+    """Read PGC3 summary stats, filtering to GW-significant SNVs on the fly.
+    
+    Filters while reading to avoid loading all 7.6M SNPs into memory
+    (login nodes on Hoffman2 have limited RAM).
+    """
+    snvs = []
+    total = 0
+    n_indels = 0
+    
     with gzip.open(filepath, 'rt') as f:
         for line in f:
             if line.startswith('##'):
@@ -94,94 +101,42 @@ def read_gwas(filepath):
             if line.startswith('CHROM'):
                 header = line.strip().split('\t')
                 continue
+            total += 1
             fields = line.strip().split('\t')
             row = dict(zip(header, fields))
-            snps.append(row)
-    return snps
-
-
-def is_snv(a1, a2):
-    """Check if variant is a single-nucleotide substitution (not indel)."""
-    return (len(a1) == 1 and len(a2) == 1 and
-            a1.upper() in VALID_BASES and a2.upper() in VALID_BASES)
-
-
-def in_mhc(chrom, pos):
-    """Check if position falls in the MHC region (chr6:25-34 Mb, hg19)."""
-    return chrom == MHC_CHR and MHC_START <= pos <= MHC_END
-
-
-def clump_snps(snps, window=CLUMP_WINDOW):
-    """
-    Greedy clumping: select lead SNPs separated by at least `window` bp.
-    
-    Algorithm:
-        1. Sort SNPs by p-value (ascending = most significant first)
-        2. Take the top SNP as a lead SNP
-        3. Remove all SNPs within `window` bp on the same chromosome
-        4. Repeat until no SNPs remain
-    
-    This is a standard approach for defining independent GWAS loci.
-    The 1 Mb window is conventional and accounts for typical LD extent
-    in European populations.
-    """
-    # Sort by p-value
-    snps_sorted = sorted(snps, key=lambda x: x['pval'])
-    
-    leads = []
-    used = set()
-    
-    for i, snp in enumerate(snps_sorted):
-        if i in used:
-            continue
-        leads.append(snp)
-        # Mark all SNPs within window on same chromosome as used
-        for j, other in enumerate(snps_sorted):
-            if j in used or j == i:
+            
+            try:
+                pval = float(row['PVAL'])
+            except (ValueError, KeyError):
                 continue
-            if (other['chr'] == snp['chr'] and
-                abs(other['pos'] - snp['pos']) <= window):
-                used.add(j)
+            if pval >= p_threshold:
+                continue
+            
+            a1 = row['A1'].upper()
+            a2 = row['A2'].upper()
+            
+            if not is_snv(a1, a2):
+                n_indels += 1
+                continue
+            
+            snvs.append({
+                'rsid': row['ID'],
+                'chr': row['CHROM'],
+                'pos': int(row['POS']),
+                'ref': a2,
+                'alt': a1,
+                'beta': float(row['BETA']),
+                'pval': pval,
+            })
     
-    return leads
-
+    return snvs, total, n_indels
 
 def main():
-    print(f"Reading {INPUT_FILE}...")
-    raw_snps = read_gwas(INPUT_FILE)
-    print(f"Total SNPs in file: {len(raw_snps):,}")
-    
-    # === Step 1: Parse and filter to genome-wide significance ===
-    parsed = []
-    for row in raw_snps:
-        try:
-            pval = float(row['PVAL'])
-        except (ValueError, KeyError):
-            continue
-        if pval >= P_THRESHOLD:
-            continue
-        
-        a1 = row['A1'].upper()
-        a2 = row['A2'].upper()
-        chrom = row['CHROM']
-        pos = int(row['POS'])
-        
-        parsed.append({
-            'rsid': row['ID'],
-            'chr': chrom,
-            'pos': pos,
-            'ref': a2,       # A2 = other allele = reference
-            'alt': a1,       # A1 = effect allele = alternate
-            'beta': float(row['BETA']),
-            'pval': pval,
-        })
-    
-    print(f"Genome-wide significant (p < {P_THRESHOLD}): {len(parsed):,}")
-    
-    # === Step 2: Remove indels ===
-    snvs = [s for s in parsed if is_snv(s['alt'], s['ref'])]
-    n_indels = len(parsed) - len(snvs)
-    print(f"After removing indels: {len(snvs):,} SNVs ({n_indels:,} indels removed)")
+    print(f"Reading {INPUT_FILE} (filtering on the fly)...")
+    snvs, total_snps, n_indels = read_and_filter_gwas(INPUT_FILE)
+    print(f"Total SNPs in file: {total_snps:,}")
+    print(f"Genome-wide significant SNVs (p < {P_THRESHOLD}): {len(snvs):,}")
+    print(f"Indels removed: {n_indels:,}")
     
     # === Step 3: Document MHC dominance ===
     snvs_sorted = sorted(snvs, key=lambda x: x['pval'])
