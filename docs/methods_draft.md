@@ -29,7 +29,7 @@ The PGC3 summary statistics are provided in PGCsumstatsVCFv1.0 format, a tab-sep
 
 #### 1.4 Coordinate system verification
 
-Genomic coordinates in the PGC3 summary statistics are in GRCh37/hg19. This was confirmed by cross-referencing the position of a known SNP (rs2007044) between the GWAS file and the Ensembl REST API. The GWAS reports rs2007044 at chr12:2,344,960, which matches the Ensembl GRCh37 position exactly. The GRCh38/hg38 position for this SNP is chr12:2,235,794 — a discrepancy of ~109 kb, characteristic of build differences. The same verification was performed in our earlier analysis of the 2018 GWAS and the hg19 coordinate system is consistent across PGC releases.
+Genomic coordinates in the PGC3 summary statistics are in GRCh37/hg19. This was confirmed by cross-referencing the position of a known SNP (rs2007044) between the GWAS file and the Ensembl coREST API. The GWAS reports rs2007044 at chr12:2,344,960, which matches the Ensembl GRCh37 position exactly. The GRCh38/hg38 position for this SNP is chr12:2,235,794 — a discrepancy of ~109 kb, characteristic of build differences. The same verification was performed in our earlier analysis of the 2018 GWAS and the hg19 coordinate system is consistent across PGC releases.
 
 ### 2. MHC dominance and the need for structured SNP selection
 
@@ -37,7 +37,7 @@ A naive approach to selecting variants of interest — simply taking the top N S
 
 When all 20,457 genome-wide significant SNPs in the European PGC3 analysis are ranked by p-value, all 50 of the top 50 SNPs fall on chromosome 6 within a ~1.3 Mb window (positions ~27.5–28.8 Mb, hg19). The first non-chromosome-6 SNP does not appear until rank #1,169 (rs58120505, chr7:2,029,867, p = 2.235 × 10⁻²⁴). Of the 20,457 genome-wide significant SNPs, 6,104 (29.8%) are on chromosome 6, and 5,994 of those fall specifically within the extended MHC region (chr6:25–34 Mb).
 
-This concentration arises from several properties of the MHC. The region is one of the most gene-dense and polymorphic in the human genome, encoding the HLA genes critical for immune function. LD blocks in the MHC can extend across megabases — far longer than the typical ~100–200 kb in European populations — meaning thousands of SNPs are correlated with each other, all reflecting a small number of underlying causal signals. The MHC does harbor genuine schizophrenia risk variants (the complement component C4 locus is a well-characterized example), but the region's extreme LD structure makes it nearly impossible to fine-map causal variants using standard approaches. For an ISM-based analysis, running AlphaGenome on thousands of tightly correlated MHC SNPs would be computationally wasteful and scientifically uninformative — the model would predict nearly identical effects for SNPs that are in near-perfect LD.
+This concentration arises from several properties of the MHC. The region is one of the most gene-dense and polymorphic in the human genome, encoding the HLA genes critical for immune function. LD blocks in the MHC can extend soacross megabases — far longer than the typical ~100–200 kb in European populations — meaning thousands of SNPs are correlated with each other, all reflecting a small number of underlying causal signals. The MHC does harbor genuine schizophrenia risk variants (the complement component C4 locus is a well-characterized example), but the region's extreme LD structure makes it nearly impossible to fine-map causal variants using standard approaches. For an ISM-based analysis, running AlphaGenome on thousands of tightly correlated MHC SNPs would be computationally wasteful and scientifically uninformative — the model would predict nearly identical effects for SNPs that are in near-perfect LD.
 
 We therefore excluded the extended MHC region (chr6:25,000,000–34,000,000 in hg19) from lead SNP selection. This window is deliberately conservative, extending beyond the classical MHC boundaries (~28–33 Mb) to capture the full extent of long-range LD in the region. The top 50 SNPs (pre-exclusion) are preserved in a separate output file for documentation.
 
@@ -50,6 +50,7 @@ To define independent risk loci, we applied greedy distance-based clumping. SNPs
 This procedure yielded **173 independent lead SNPs** distributed across the autosomal genome. For initial pipeline development and testing, the 10 most significant lead SNPs (by p-value) were selected as a pilot set. These span 9 chromosomes (chr1, chr2, chr3, chr4, chr7, chr8, chr10, chr12, chr15), confirming that the MHC exclusion and clumping successfully produce a genome-wide distribution rather than a regionally clustered set.
 
 ### 4. Coordinate liftover (hg19 → hg38)
+
 
 AlphaGenome was trained on GRCh38/hg38 genome sequences and requires hg38 coordinates as input. Because the PGC3 summary statistics use hg19 coordinates (Section 1.4), all 173 lead SNP positions were converted from hg19 to hg38 before use with the model.
 

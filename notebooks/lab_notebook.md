@@ -6,6 +6,180 @@
 This notebook documents every work session in chronological order: what was run, what the output was, decisions made, and any blockers. After each completed phase, these notes get converted into thesis-ready methods prose.
 
 ## Session 3 - August 3, 2026
+**Goal:** Download the latest PGC3 SCZ GWAS, build a robust lead SNP pipeline with documented MHC analysis, liftover to hg38, and validate
+ 
+### Context and motivation for switching to PGC3
+In our July 22 meeting, Choo recommended switching from the 2018 CLOZUK+PGC2 GWAS (scz2018clozuk) to the latest available SCZ GWAS from PGC. The reasoning is straightforward: larger sample sizes yield more statistical power, which means more discovered loci and more precise effect size estimates. Since we are using GWAS hits as inputs to AlphaGenome (not re-analyzing the GWAS itself), using the most comprehensive available set of risk loci gives us the richest set of variants to characterize computationally.
+ 
+### PGC3 SCZ GWAS (Trubetskoy et al., 2022, Nature)
+- **Citation:** Trubetskoy et al., "Mapping genomic loci implicates genes and synaptic biology in schizophrenia," Nature, 2022. PubMed: 35396580
+- **Download:** https://doi.org/10.6084/m9.figshare.19426775
+- **Sample:** European ancestry subset: ~53,386 cases, ~77,258 controls (effective N ≈ 58,749)
+- **Multi-ancestry (primary):** ~69,369 cases, ~236,642 controls across European, East Asian, African American, and Latino ancestries; identified 270 distinct risk loci (headline result)
+### Choosing the European ancestry subset
+The figshare download contains multiple files for different ancestry groups and analysis configurations. We downloaded two:
+- `PGC3_SCZ_european.vcf.tsv.gz` (229 MB) — European ancestry only
+- `PGC3_SCZ_primary.vcf.tsv.gz` (226 MB) — multi-ancestry primary analysis
+We chose **European ancestry** for the initial analysis. The reasoning requires nuance:
+ 
+For ISM with AlphaGenome specifically, ancestry does not affect the prediction itself — AlphaGenome is purely sequence-based, takes hg38 DNA as input, and does not know or care about population genetics. The reference genome is the same for everyone, and the ISM result ("does this SNP change predicted chromatin?") is ancestry-agnostic.
+ 
+However, ancestry matters for **which SNPs we select as inputs**, because:
+1. **Allele frequencies differ across populations.** A variant common enough to detect in Europeans may be rare in East Asians, and vice versa. The GWAS p-value depends on allele frequency in the study population.
+2. **Linkage disequilibrium (LD) patterns differ.** When we apply a 1 Mb clumping window to select independent lead SNPs, the result depends on the LD structure of the study population. In populations with longer LD blocks, more SNPs get clumped together.
+3. **The lead SNP from clumping may not be the causal SNP.** It is the most statistically significant SNP within a correlated block, and which SNP that is depends on LD structure.
+4. **Downstream tools are better calibrated for European populations.** LD reference panels, fine-mapping methods, and most existing functional annotations are most complete for European ancestry data.
+5. **Comparability with prior work.** The 2018 CLOZUK+PGC2 GWAS was also European ancestry.
+Either European or primary (multi-ancestry) could be justified. We use European for now and have the primary file available if we want to expand later. This is a decision worth revisiting with Choo — the multi-ancestry analysis has more power (270 loci vs. ~230 in European-only) but introduces complexity in LD-based SNP selection.
+ 
+### File format inspection
+The PGC3 files use a VCF-style tab-separated format (`PGCsumstatsVCFv1.0`) with `##` comment headers. Key columns:
+ 
+| Column | Meaning | Notes |
+|---|---|---|
+| CHROM | Chromosome | No 'chr' prefix |
+| ID | rsID | |
+| POS | Position | **hg19 (GRCh37)** — confirmed below |
+| A1 | Effect allele | This is the **alt** allele |
+| A2 | Other allele | This is the **ref** allele |
+| BETA | Log odds ratio | Different from 2018 file which used OR |
+| SE | Standard error | |
+| PVAL | P-value | Column name differs from 2018 (was "P") |
+| NCAS | N cases | |
+| NCON | N controls | |
+| NEFF | Effective N | |
+ 
+Compared to the 2018 CLOZUK file: column names differ (CHROM vs CHR, ID vs SNP, PVAL vs P, BETA vs OR) but the data structure is equivalent. A1 is still the effect/alt allele, A2 is still the ref allele.
+ 
+### Coordinate system verification
+Applied the same sanity check method from Session 3: looked up rs2007044 in the European file.
+```bash
+zcat PGC3_SCZ_european.vcf.tsv.gz | grep -v "^##" | grep "rs2007044"
+# Output: chr12  rs2007044  2344960  A  G  ...
+```
+POS = 2,344,960, which we previously confirmed is the hg19 position for this SNP (hg38 would be 2,235,794). **Conclusion: PGC3 also uses hg19 coordinates.** This is consistent across PGC releases.
+ 
+### Summary statistics overview
+ 
+| Metric | European | Primary |
+|---|---|---|
+| Total SNPs | 7,659,767 | 7,585,077 |
+| Genome-wide significant (p < 5e-8) | 20,457 | 21,723 |
+ 
+Compared to 2018 CLOZUK: 8,064,800 total SNPs, 18,088 GW-significant. PGC3 has slightly fewer total SNPs (different imputation panel) but more genome-wide significant hits (larger sample = more power).
+ 
+### MHC dominance analysis — why naive "top N SNPs" fails
+ 
+Choo asked us to first pull the top 10–50 SNPs by p-value and note where they fall. This is a pedagogically important exercise: it demonstrates a fundamental challenge in schizophrenia genetics.
+ 
+**Result: all 50 of the top 50 SNPs by p-value are on chromosome 6.**
+ 
+They span positions ~27.5–28.8 Mb (hg19), which falls squarely within the Major Histocompatibility Complex (MHC) region (~25–34 Mb on chr6). The first non-chr6 SNP does not appear until **rank #1,169** (rs58120505, chr7:2,029,867, p = 2.235e-24).
+ 
+**Why does this happen?** The MHC region is one of the most gene-dense and polymorphic regions in the human genome. It encodes proteins critical for immune function (HLA genes). Several properties make it dominate GWAS results:
+1. **Extreme genetic diversity.** The MHC harbors more common variants than almost any other region, giving GWAS more "chances" to detect associations.
+2. **Complex and extended LD structure.** LD blocks in the MHC can stretch megabases — much longer than typical genomic LD (~100–200 kb in Europeans). This means thousands of SNPs are correlated with each other, all reflecting a small number of underlying causal signals.
+3. **Strong biological effect.** The MHC genuinely harbors schizophrenia risk variants (complement component C4 is a well-characterized example), but the signal is amplified by the region's unusual genetic architecture.
+4. **Difficult to interpret mechanistically.** The extreme LD makes it nearly impossible to fine-map causal variants in the MHC using standard methods. For ISM, running AlphaGenome on thousands of correlated MHC SNPs would be computationally wasteful and scientifically uninformative.
+**Quantitative breakdown:**
+- GW-sig SNVs on chr6: 6,104 / 20,457 (29.8%)
+- GW-sig SNVs in the MHC region specifically (chr6:25–34 Mb): 5,994
+- GW-sig SNVs outside chr6: 14,353
+So nearly 30% of all genome-wide significant SNPs come from one region that spans ~9 Mb (0.3% of the genome). This is why we exclude the MHC from lead SNP selection — not because it's unimportant biologically, but because its unusual genetic structure makes it unsuitable for the per-variant ISM approach.
+ 
+### Lead SNP pipeline (get_lead_snps_pgc3.py)
+ 
+**Memory optimization.** The initial version of the script loaded all 7.6M SNPs into memory before filtering, which caused a MemoryError on Hoffman2 login nodes (limited RAM). Fixed by filtering on the fly: only genome-wide significant SNVs are retained during reading, reducing memory usage from ~7.6M rows to ~20k.
+ 
+**Pipeline steps:**
+1. **Read and filter to GW-significance (p < 5e-8):** Stream through the gzipped file, parsing each line and keeping only SNPs with PVAL < 5e-8. This reduces 7,659,767 SNPs to 20,457.
+2. **Remove indels:** AlphaGenome accepts only single-nucleotide substitutions as input (it predicts the effect of swapping one base for another at a specific position). Multi-base variants (insertions, deletions) cannot be represented in this framework. In practice, 0 indels were found among the GW-significant SNPs in this dataset (likely because the PGC3 VCF format already restricts to biallelic SNPs).
+3. **Document MHC dominance:** Save the top 50 SNPs to a separate file (`scz_pgc3_mhc_analysis.tsv`) for reference, and report the MHC statistics described above.
+4. **Exclude MHC region:** Remove all SNPs in chr6:25,000,000–34,000,000 (hg19). This is a deliberately conservative window that extends beyond the classical MHC boundaries to capture the full extent of the extended MHC LD. After exclusion: 14,463 SNVs remain.
+5. **1 Mb clumping:** Apply greedy distance-based clumping to define independent loci. The algorithm sorts SNPs by p-value (most significant first), selects the top SNP as a lead, removes all SNPs within 1 Mb on the same chromosome, and repeats. The 1 Mb window is standard in GWAS (used by PGC, PLINK, and most post-GWAS tools) because it roughly captures the extent of LD in European populations — SNPs more than 1 Mb apart are unlikely to be in strong LD and can be considered independent signals. After clumping: **173 independent lead SNPs**.
+6. **Select pilot SNPs:** Take the top 10 lead SNPs by p-value for initial pipeline development and testing.
+**Output:**
+- `scz_pgc3_lead_snps.tsv` — 173 independent lead SNPs (hg19)
+- `scz_pgc3_pilot_10snps.tsv` — 10 pilot SNPs (hg19)
+- `scz_pgc3_mhc_analysis.tsv` — top 50 SNPs documenting MHC dominance
+### Pilot SNPs (hg19)
+ 
+| rsid | chr | pos | ref | alt | pval |
+|---|---|---|---|---|---|
+| rs58120505 | 7 | 2,029,867 | C | T | 2.235e-24 |
+| rs2238057 | 12 | 2,384,005 | G | T | 8.502e-22 |
+| rs1198588 | 1 | 98,552,832 | T | A | 1.731e-21 |
+| rs4702 | 15 | 91,426,560 | A | G | 2.794e-21 |
+| rs13107325 | 4 | 103,188,709 | T | C | 2.900e-21 |
+| rs2710323 | 3 | 52,815,905 | C | T | 1.229e-19 |
+| rs12129573 | 1 | 73,768,366 | A | C | 2.282e-18 |
+| rs4129585 | 8 | 143,312,933 | C | A | 5.109e-18 |
+| rs778371 | 2 | 233,743,109 | G | A | 1.495e-17 |
+| rs11191580 | 10 | 104,906,211 | C | T | 1.772e-17 |
+ 
+Note: rs4129585 (chr8) was also in our original 2018 pilot set — provides cross-study continuity.
+ 
+### Liftover hg19 → hg38
+ 
+Applied the same liftover procedure as Session 4 using pyliftover with the UCSC hg19ToHg38.over.chain.gz chain file.
+ 
+**How liftover works (conceptual):** The human reference genome has been assembled multiple times as sequencing technology improved. hg19 (GRCh37, released 2009) and hg38 (GRCh38, released 2013) differ because hg38 incorporated better assemblies of centromeric regions, added alternate loci, fixed sequencing errors, and closed gaps. These changes shift the coordinates of most genomic positions — a gene that starts at position X in hg19 may start at position X+Δ in hg38, where Δ varies by region (from a few bp to several megabases). The UCSC "chain file" encodes these coordinate mappings: it specifies, for each contiguous block in hg19, where that block maps in hg38. Pyliftover reads this chain file and performs the lookup.
+ 
+**Coordinate convention detail:** GWAS summary statistics and most genomics text files use 1-based coordinates (position 1 = first base). Pyliftover internally uses 0-based half-open intervals (consistent with BED format and Python indexing). Our script converts: subtract 1 before calling pyliftover, add 1 to the result.
+ 
+**Results:**
+```
+scz_pgc3_lead_snps.tsv: 173 lifted, 0 failed
+scz_pgc3_pilot_10snps.tsv: 10 lifted, 0 failed
+```
+ 
+### Liftover validation
+ 
+**Method 1: Cross-reference with previous validation.** rs4129585 appears in both the 2018 and PGC3 pilot sets. Its hg38 position from this liftover (chr8:142,231,572) matches exactly what we validated against dbSNP in Session 3.
+ 
+**Method 2: Spot-check new SNP against Ensembl.** Queried rs58120505 (the #1 non-MHC SNP, not in our previous set):
+```bash
+curl -s "https://rest.ensembl.org/variation/human/rs58120505?content-type=application/json"
+# Output: 7:1990232-1990232 | alleles: T/A/C/G
+```
+Our liftover gives chr7:1,990,232 — exact match. Alleles T/A/C/G include our ref=C and alt=T.
+ 
+### Pilot SNPs (hg38, final)
+ 
+| rsid | chr | pos (hg38) | ref | alt | pval |
+|---|---|---|---|---|---|
+| rs58120505 | 7 | 1,990,232 | C | T | 2.235e-24 |
+| rs2238057 | 12 | 2,274,839 | G | T | 8.502e-22 |
+| rs1198588 | 1 | 98,087,276 | T | A | 1.731e-21 |
+| rs4702 | 15 | 90,883,330 | A | G | 2.794e-21 |
+| rs13107325 | 4 | 102,267,552 | T | C | 2.900e-21 |
+| rs2710323 | 3 | 52,781,889 | C | T | 1.229e-19 |
+| rs12129573 | 1 | 73,302,683 | A | C | 2.282e-18 |
+| rs4129585 | 8 | 142,231,572 | C | A | 5.109e-18 |
+| rs778371 | 2 | 232,878,399 | G | A | 1.495e-17 |
+| rs11191580 | 10 | 103,146,454 | C | T | 1.772e-17 |
+ 
+### Problems encountered and solutions
+ 
+1. **figshare download URL:** The initial wget to `figshare.com/ndownloader/articles/19426775/versions/2` returned a 0-byte file (HTTP 202 Accepted without data). Fixed by querying the figshare API for individual file download URLs and using those directly.
+2. **Memory error on login node:** The initial `get_lead_snps_pgc3.py` loaded all 7.6M SNPs into a list before filtering, exceeding login node RAM. Fixed by rewriting to filter on the fly during reading — only ~20k significant SNPs are kept in memory.
+3. **Coordinate system (hg19 vs hg38):** Already known from Session 3 that PGC GWAS uses hg19, but verified independently for PGC3 using the same rs2007044 check. This confirms the pattern holds across PGC releases.
+### Output files on Hoffman2
+All in `/u/project/cluo/aryasath/alphagenome_project/phase1/data/`:
+- `PGC3_SCZ_european.vcf.tsv.gz` — raw GWAS summary statistics (229 MB)
+- `PGC3_SCZ_primary.vcf.tsv.gz` — multi-ancestry version (226 MB, downloaded but not used yet)
+- `scz_pgc3_mhc_analysis.tsv` — top 50 SNPs (MHC documentation)
+- `scz_pgc3_lead_snps.tsv` — 173 lead SNPs, hg19
+- `scz_pgc3_lead_snps_hg38.tsv` — 173 lead SNPs, hg38
+- `scz_pgc3_pilot_10snps.tsv` — 10 pilot SNPs, hg19
+- `scz_pgc3_pilot_10snps_hg38.tsv` — 10 pilot SNPs, hg38
+### Status
+✅ Task 4 complete. PGC3 GWAS downloaded, processed, MHC dominance documented, 173 lead SNPs identified, 10 pilot SNPs selected, all lifted to hg38 and validated.
+ 
+**Immediate next steps:**
+1. Write ISM inference script using variant_scoring module
+2. Run ISM on 10 pilot SNPs (locally on Mac first, then Hoffman2 for batch)
+3. Visualize delta ATAC tracks, compare brain vs non-brain
 
 ---
 ## Session 2 — July 23-24, 2026
