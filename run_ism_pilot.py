@@ -57,7 +57,9 @@ import sys
 from alphagenome_pytorch import AlphaGenome
 
 # === Configuration ===
-PILOT_FILE = os.path.join('phase1', 'data', 'scz_pgc3_pilot_10snps_hg38.tsv')
+PILOT_FILE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
+    'phase1', 'data', 'scz_pgc3_pilot_10snps_hg38.tsv')
+OUT_NAME = sys.argv[2] if len(sys.argv) > 2 else 'pilot_ism_scores.tsv'
 WEIGHTS_PATH = os.path.expanduser('~/alphagenome-weights/model_fold_0.safetensors')
 OUTPUT_DIR = os.path.join('results', 'ism')
 SEQ_LEN = 131_072          # AlphaGenome input length
@@ -257,7 +259,7 @@ def main():
             torch.cuda.empty_cache()
     
     # --- Save results ---
-    scores_out = os.path.join(OUTPUT_DIR, 'pilot_ism_scores.tsv')
+    scores_out = os.path.join(OUTPUT_DIR, OUT_NAME)
     fieldnames = ['rsid', 'chr', 'pos', 'true_ref', 'true_alt',
                   'gwas_alleles_swapped', 'modality', 'track_index',
                   'variant_effect_score']
