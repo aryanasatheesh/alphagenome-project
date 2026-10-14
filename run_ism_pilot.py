@@ -153,6 +153,8 @@ def main():
     print('Model loaded.')
     
     # --- Load pilot SNPs ---
+    print(f'INPUT : {PILOT_FILE}')
+    print(f'OUTPUT: {os.path.join(OUTPUT_DIR, OUT_NAME)}')
     with open(PILOT_FILE) as f:
         snps = list(csv.DictReader(f, delimiter='\t'))
     print(f'Loaded {len(snps)} pilot SNPs.')
