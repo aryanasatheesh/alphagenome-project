@@ -704,7 +704,7 @@ Real tracks occupy indices 0…N−1 in metadata order, so metadata row *i* is m
 - The random null in Test 2 was drawn partly from dead padding channels, depressing the comparison
 - The astrocyte r = 0.849 was genuine signal
 ### Consequences for existing results
-1. **The 6,400 ISM scores from Session 8 are valid and do not need rerunning** — they were computed at 1 bp resolution on human predictions (see note below). They do need **filtering**: drop `track_index >= 167` for ATAC and `>= 305` for DNase before any summary statistic. All max/mean values in the Session 8 table were computed over full width and are therefore diluted.
+1. **The 6,400 ISM scores are valid and do not need rerunning** — they were computed at 1 bp resolution on human predictions (see note below). They do need **filtering**: drop `track_index >= 167` for ATAC and `>= 305` for DNase before any summary statistic. All max/mean values in the Session 8 table were computed over full width and are therefore diluted.
 2. **Any future per-track analysis must filter padding first.** This is easy to miss and would silently corrupt results.
 ### Secondary finding: model output structure
 While debugging, discovered that model outputs are **dicts keyed by resolution in base pairs**, not tuples:
@@ -737,7 +737,7 @@ Worth converting `track_metadata_classified.tsv` into the catalog's expected sch
 5. Write up the fine-mapping / LD argument for the thesis introduction
 ---
 
-## Session 10 — August 25, 2026
+## Session 6 — August 25, 2026
 **Goal:** Filter padding from ISM scores and compute CNS vs non-CNS variant effects (Step 1 complete)
  
 ### Padding filter

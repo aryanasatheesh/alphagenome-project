@@ -106,6 +106,13 @@ When all 20,457 genome-wide significant SNPs in the European PGC3 analysis are r
 This concentration arises from several properties of the MHC. The region is one of the most gene-dense and polymorphic in the human genome, encoding the HLA genes critical for immune function. LD blocks in the MHC can extend across megabases — far longer than the typical ~100–200 kb in European populations — meaning thousands of SNPs are correlated with each other, all reflecting a small number of underlying causal signals. The MHC does harbor genuine schizophrenia risk variants (the complement component C4 locus is a well-characterized example), but the region's extreme LD structure makes it nearly impossible to fine-map causal variants using standard approaches. For an ISM-based analysis, running AlphaGenome on thousands of tightly correlated MHC SNPs would be computationally wasteful and scientifically uninformative — the model would predict nearly identical effects for SNPs that are in near-perfect LD.
  
 We therefore excluded the extended MHC region (chr6:25,000,000–34,000,000 in hg19) from lead SNP selection. This window is deliberately conservative, extending beyond the classical MHC boundaries (~28–33 Mb) to capture the full extent of long-range LD in the region. The top 50 SNPs (pre-exclusion) are preserved in a separate output file for documentation.
+
+SNPs within the extended MHC region (chr6:25,000,000–34,000,000, GRCh37) were excluded prior to clumping. This window is a rounded, conservative extension of the xMHC as defined by Horton et al. (2004), and is the default exclusion range used by standard post-GWAS tooling; rounded boundaries of this kind are widely adopted to improve comparability across studies, though reported windows vary (e.g. chr6:26–34 Mb). Exclusion was applied to hg19 coordinates prior to liftover. The region accounted for 5,994 of 20,457 genome-wide significant SNPs (29.3%) despite spanning approximately 0.3% of the genome, reflecting the exceptional polymorphism and extended linkage disequilibrium of the MHC, which make per-variant functional interpretation unreliable there.
+
+https://pmc.ncbi.nlm.nih.gov/articles/PMC3355177/
+https://www.nature.com/articles/s41398-022-01854-9
+https://cloufield.github.io/gwaslab/HLA/
+https://www.medrxiv.org/content/10.1101/2024.12.04.24318500v1.full
  
 ### 3. Lead SNP selection
  
