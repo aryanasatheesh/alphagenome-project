@@ -39,8 +39,8 @@ Input:
         CHROM   chromosome (no 'chr' prefix)
         ID      rsID
         POS     base pair position (hg19 / GRCh37)
-        A1      effect allele (alt)
-        A2      other allele (ref)
+        A1      effect allele: BETA is the log odds ratio for carrying this allele
+        A2      other allele
         FCAS    frequency of A1 in cases
         FCON    frequency of A1 in controls
         IMPINFO imputation INFO score
@@ -60,7 +60,9 @@ Output:
     scz_pgc3_lead_snps.tsv     — all independent lead SNPs, hg19 coordinates
     scz_pgc3_pilot_10snps.tsv  — 10 pilot SNPs for pipeline development
 
-    Output columns: rsid, chr, pos, ref, alt, beta, pval
+    Output columns: rsid, chr, pos, a1, a2, a1_freq_controls, beta, pval
+    a1/a2 are GWAS roles, NOT hg38 ref/alt. run_ism_pilot.py determines which
+    is the hg38 reference base at each position.
 
 Usage:
     python get_lead_snps_pgc3.py
@@ -129,8 +131,9 @@ def read_and_filter_gwas(filepath, p_threshold=P_THRESHOLD):
                 'rsid': row['ID'],
                 'chr': row['CHROM'],
                 'pos': int(row['POS']),
-                'ref': a2,       # A2 = other allele = reference
-                'alt': a1,       # A1 = effect allele = alternate
+                'a1': a1,       # effect allele (BETA refers to it)
+                'a2': a2,       # other allele
+                'a1_freq_controls': row['FCON'],   # A1 frequency in controls
                 'beta': float(row['BETA']),
                 'pval': pval,
             })
@@ -214,7 +217,7 @@ def main():
     print(f"GW-sig SNVs in MHC region (chr6:25-34Mb): {n_mhc:,}")
 
     # Save top 50 for documentation
-    fieldnames = ['rsid', 'chr', 'pos', 'ref', 'alt', 'beta', 'pval']
+    fieldnames = ['rsid', 'chr', 'pos', 'a1', 'a2', 'a1_freq_controls', 'beta', 'pval']    
     mhc_out = os.path.join(OUTPUT_DIR, 'scz_pgc3_mhc_analysis.tsv')
     with open(mhc_out, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
@@ -251,11 +254,11 @@ def main():
 
     # Print pilot SNPs
     print(f"\nPilot SNPs (top {N_PILOT} lead SNPs by p-value, excluding MHC):")
-    print(f"{'rsid':15s} {'chr':>4s} {'pos':>12s} {'ref':>4s} {'alt':>4s} {'pval':>12s}")
+    print(f"{'rsid':15s} {'chr':>4s} {'pos':>12s} {'a1':>4s} {'a2':>4s} {'pval':>12s}")
     print("-" * 55)
     for s in pilot:
         print(f"{s['rsid']:15s} {s['chr']:>4s} {s['pos']:>12,d} "
-              f"{s['ref']:>4s} {s['alt']:>4s} {s['pval']:>12.3e}")
+              f"{s['a1']:>4s} {s['a2']:>4s} {s['pval']:>12.3e}")
 
     # Reminder about coordinates
     print(f"\nNOTE: All positions are hg19 (GRCh37). Run liftover_to_hg38.py")

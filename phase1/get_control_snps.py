@@ -152,8 +152,8 @@ def main():
                     'rsid': row['ID'],
                     'chr': chrom,
                     'pos': pos,
-                    'ref': a2,
-                    'alt': a1,
+                    'a2': a2,
+                    'a1': a1,
                     'beta': float(row['BETA']),
                     'pval': pval,
                 }
@@ -171,7 +171,7 @@ def main():
     chosen.sort(key=lambda c: int(c) if c.isdigit() else 99)
     controls = [reservoir[c] for c in chosen]
 
-    fieldnames = ['rsid', 'chr', 'pos', 'ref', 'alt', 'beta', 'pval']
+    fieldnames = ['rsid', 'chr', 'pos', 'a1', 'a2', 'a1_freq_controls', 'beta', 'pval']    
     out_hg19 = os.path.join(OUTPUT_DIR, f'scz_pgc3_control_{N_CONTROLS}snps.tsv')
     with open(out_hg19, 'w', newline='') as f:
         w = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
@@ -179,11 +179,11 @@ def main():
         w.writerows(controls)
     print(f'\nSaved {len(controls)} control SNPs (hg19) to {out_hg19}')
 
-    print(f'\n{"rsid":15s} {"chr":>4s} {"pos":>13s} {"ref":>4s} {"alt":>4s} {"pval":>8s}')
+    print(f'\n{"rsid":15s} {"chr":>4s} {"pos":>13s} {"a1":>4s} {"a2":>4s} {"pval":>8s}')
     print('-' * 52)
     for s in controls:
         print(f'{s["rsid"]:15s} {s["chr"]:>4s} {s["pos"]:>13,d} '
-              f'{s["ref"]:>4s} {s["alt"]:>4s} {s["pval"]:>8.3f}')
+              f'{s["a1"]:>4s} {s["a2"]:>4s} {s["pval"]:>8.3f}')
 
 
     # Liftover is a separate step so every hg38 file in the project is made
