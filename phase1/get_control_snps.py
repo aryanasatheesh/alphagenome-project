@@ -152,8 +152,9 @@ def main():
                     'rsid': row['ID'],
                     'chr': chrom,
                     'pos': pos,
-                    'a2': a2,
-                    'a1': a1,
+                    'a1': a1,                          # effect allele (BETA refers to it)
+                    'a2': a2,                          # other allele
+                    'a1_freq_controls': row['FCON'],   # A1 frequency in controls
                     'beta': float(row['BETA']),
                     'pval': pval,
                 }
