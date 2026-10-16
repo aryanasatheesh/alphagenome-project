@@ -1,4 +1,4 @@
-date              : 2026-10-16T09:38:20
+date              : 2026-10-16T14:41:49
 command           : phase1/liftover_to_hg38.py --input phase1/data/scz_pgc3_pilot_10snps.tsv --output phase1/data/scz_pgc3_pilot_10snps_hg38.tsv
 input             : phase1/data/scz_pgc3_pilot_10snps.tsv
 output            : phase1/data/scz_pgc3_pilot_10snps_hg38.tsv
