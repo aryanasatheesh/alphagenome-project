@@ -42,7 +42,7 @@ Input:
 
 Output:
     data/scz_pgc3_control_10snps.tsv       — control SNPs, hg19
-    data/scz_pgc3_control_10snps_hg38.tsv  — control SNPs, hg38 (if pyliftover available)
+    Lift to hg38 afterwards with liftover_to_hg38.py (strict; writes a report and log).
 
     Same column schema as the pilot files so the ISM script can consume either.
 
@@ -60,7 +60,6 @@ import sys
 GWAS_FILE = os.path.join('data', 'PGC3_SCZ_european.vcf.tsv.gz')
 LEAD_FILE = os.path.join('data', 'scz_pgc3_lead_snps.tsv')
 OUTPUT_DIR = 'data'
-CHAIN_FILE = os.path.join('data', 'hg19ToHg38.over.chain.gz')
 
 P_NULL_MIN = 0.5           # SNPs must be clearly non-associated
 MHC_CHR = '6'
@@ -186,42 +185,16 @@ def main():
         print(f'{s["rsid"]:15s} {s["chr"]:>4s} {s["pos"]:>13,d} '
               f'{s["ref"]:>4s} {s["alt"]:>4s} {s["pval"]:>8.3f}')
 
-    # --- Liftover to hg38 ---
-    try:
-        from pyliftover import LiftOver
-    except ImportError:
-        print('\npyliftover not installed; skipping liftover.')
-        print('  pip install pyliftover, then run liftover_to_hg38.py')
-        return
 
-    if not os.path.exists(CHAIN_FILE):
-        print(f'\nChain file not found at {CHAIN_FILE}; skipping liftover.')
-        return
-
-    lo = LiftOver(CHAIN_FILE)
-    lifted, failed = [], []
-    for row in controls:
-        r = dict(row)
-        res = lo.convert_coordinate('chr' + r['chr'], r['pos'] - 1)  # 1-based -> 0-based
-        if res:
-            new_chrom, new_pos, _, _ = res[0]
-            r['chr'] = new_chrom.replace('chr', '')
-            r['pos'] = new_pos + 1                                    # back to 1-based
-            lifted.append(r)
-        else:
-            failed.append(r)
-
-    out_hg38 = os.path.join(OUTPUT_DIR, f'scz_pgc3_control_{N_CONTROLS}snps_hg38.tsv')
-    with open(out_hg38, 'w', newline='') as f:
-        w = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
-        w.writeheader()
-        w.writerows(lifted)
-    print(f'\nLiftover: {len(lifted)} succeeded, {len(failed)} failed')
-    print(f'Saved to {out_hg38}')
-    if failed:
-        for r in failed:
-            print(f'  FAILED: {r["rsid"]} chr{r["chr"]}:{r["pos"]}')
-
+    # Liftover is a separate step so every hg38 file in the project is made
+    # the same way, by the strict script, with a report and provenance log.
+    lift_script = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               'liftover_to_hg38.py')
+    out_abs = os.path.abspath(out_hg19)
+    print('\nNext step: lift to hg38 with')
+    print(f'  python {lift_script} \\\n'
+          f'      --input  {out_abs} \\\n'
+          f'      --output {out_abs[:-4]}_hg38.tsv')
 
 if __name__ == '__main__':
     main()
