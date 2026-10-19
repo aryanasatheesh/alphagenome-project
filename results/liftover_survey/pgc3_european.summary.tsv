@@ -1,0 +1,8 @@
+status	all_n	all_pct	gw_sig_n	gw_sig_pct	null_p_gt_0.5_n	null_p_gt_0.5_pct	meaning
+lifted	7646680	99.8291	20434	99.8876	3099610	99.8486	mapped uniquely to the same standard chromosome on the + strand
+unmapped	3809	0.0497	10	0.0489	1559	0.0502	position falls in a region with no hg38 equivalent
+alt_contig	948	0.0124	1	0.0049	418	0.0135	maps to a non-standard contig (alt, random, chrUn, chrM)
+chrom_change	26	0.0003	0	0.0000	11	0.0004	maps to a different chromosome than it came from
+strand_flip	8304	0.1084	12	0.0587	2712	0.0874	maps to the - strand; the hg38 base is the complement of the hg19 base
+TOTAL	7659767	100.0000	20457	100.0000	3104310	100.0000	
+palindromic	1159302	15.1350	3022	14.7724	468739	15.0996	A/T or C/G SNP; strand not checkable

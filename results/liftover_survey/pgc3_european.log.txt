@@ -1,0 +1,10 @@
+date              : 2026-10-18T17:45:39
+command           : phase1/survey_liftover_edge_cases.py --gwas data/PGC3_SCZ_european.vcf.tsv.gz --out-prefix results/liftover_survey/pgc3_european
+gwas              : data/PGC3_SCZ_european.vcf.tsv.gz
+chain file        : hg19ToHg38.over.chain.gz
+chain md5         : 35887f73fe5e2231656504d1f6430900
+pyliftover version: 0.4.1
+python version    : 3.8.5
+snps read         : 7659767
+non-numeric p     : 0
+runtime_seconds   : 71
