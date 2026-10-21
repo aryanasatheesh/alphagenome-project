@@ -51,6 +51,11 @@ alphagenome_project/
 5. Select 5 pilot SNPs for pipeline development → `scz_pilot_5snps_hg38.tsv`
 6. Liftover hg19 → hg38 (confirmed: GWAS uses hg19 coordinates)
 
+   ## Liftover package (hg19 → hg38)
+   - How it works: [docs/liftover_README.md](docs/liftover_README.md)
+   - Allele conventions: [docs/allele_conventions.md](docs/allele_conventions.md)
+   - How to test it: [docs/TESTING_liftover.md](docs/TESTING_liftover.md)
+
 ### Phase 2 — ISM with pretrained model (in progress)
 1. For each SNP: extract 131,072 bp hg38 sequence window centered on variant
 2. Build ref and alt copies (swap single base at center)
