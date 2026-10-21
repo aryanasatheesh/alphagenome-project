@@ -57,6 +57,16 @@ def main():
     ap.add_argument("--cases", default=str(REPO / "tests" / "liftover" / "edge_cases_hg19.tsv"))
     args = ap.parse_args()
 
+    # The liftover script runs under this same Python, so check it can import
+    # pyliftover first; otherwise every check fails with a confusing message.
+    try:
+        import pyliftover  # noqa: F401
+    except ImportError:
+        sys.exit(f"pyliftover is not installed for this Python ({sys.executable}).\n"
+                 "Activate the environment that has it first, e.g. on the Mac:\n"
+                 "    source ~/alphagenome-env/bin/activate\n"
+                 "or install it:  pip install pyliftover==0.4.1")
+
     for p, what in ((SCRIPT, "liftover script"), (Path(args.chain), "chain file"),
                     (Path(args.cases), "test cases")):
         if not p.exists():
@@ -72,9 +82,13 @@ def main():
 
         print("1. Strict mode (default)")
         r = run(["--input", args.cases, "--output", str(out), "--chain", args.chain])
-        check("exits with status 1 because some SNPs cannot be lifted", r.returncode == 1,
+        # Require the script's own failure summary, so a crash or import error
+        # (which also exits 1) cannot pass this check.
+        check("exits with status 1 because some SNPs cannot be lifted",
+              r.returncode == 1 and "Output NOT written" in r.stdout,
               f"exit {r.returncode}; output:\n{r.stdout}")
-        check("does NOT write the output file", not out.exists())
+        check("does NOT write the output file", report.exists() and not out.exists(),
+              "no report either: the script did not run" if not report.exists() else "")
         check("writes the per-SNP report", report.exists())
         if report.exists():
             rep = {row["id"]: row for row in read_tsv(report)}
