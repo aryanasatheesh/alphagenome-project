@@ -820,3 +820,239 @@ The two extremes separate on cell-type composition, not just magnitude:
 
 ---
 
+## Session 7 — August 31, 2026
+**Goal:** Build a first internal negative-control SNP set and run ISM on it (Step 2 of the post-meeting plan)
+ 
+### Why controls
+Session 6 left one gap: no reference distribution. A CNS − non-CNS value of +0.10 (rs1198588) cannot be called large or small without knowing what the same statistic looks like for variants with no disease association.
+ 
+### Design decisions
+- **Random first, matched later.** Matching on allele frequency and GC content (Li & Ernst, 2025: GC content alone explains much apparent deep-learning variant signal) is the better design but more work. A random set validates the machinery first.
+- **n = 10**, the same size as the pilot set. This is a machinery check, not a null: a mean and spread from 10 points is very uncertain. 50+ needed before drawing conclusions.
+### Selection criteria (`phase1/get_control_snps.py`)
+1. **p > 0.5.** Clearly non-associated. Deliberately far above 5×10⁻⁸: SNPs at p ≈ 10⁻⁵ may be real but underpowered signal.
+2. Single-nucleotide variants only.
+3. Outside the extended MHC (chr6:25–34 Mb, hg19), as for lead SNPs.
+4. ≥ 1 Mb from every one of the 173 lead SNPs, so no control sits in a risk locus's LD block.
+5. At most one per chromosome, to avoid clustering.
+6. Reservoir sampling (k = 1 per chromosome) while streaming the 7.6M-row file, so memory stays small on the login node. Seed 42.
+### Controls selected
+Alleles are written here as GWAS roles (A1 = effect allele).
+ 
+| rsid | chr | pos hg19 | pos hg38 | A1 | A2 | p |
+|---|---|---|---|---|---|---|
+| rs2067987 | 2 | 242,027,926 | 241,088,511 | T | A | 0.584 |
+| rs3777506 | 6 | 75,884,136 | 75,174,420 | G | A | 0.832 |
+| rs12807017 | 11 | 9,679,145 | 9,657,598 | T | C | 0.957 |
+| rs7137768 | 12 | 77,724,773 | 77,330,993 | T | C | 0.536 |
+| rs7326762 | 13 | 86,578,698 | 86,004,563 | T | A | 0.539 |
+| rs72730413 | 14 | 67,384,310 | 66,917,593 | G | A | 0.529 |
+| rs78807154 | 16 | 8,200,245 | 8,150,243 | C | T | 0.698 |
+| rs6033101 | 20 | 11,297,353 | 11,316,705 | A | G | 0.606 |
+| rs2898160 | 21 | 30,487,496 | 29,115,175 | A | G | 0.931 |
+| rs62225795 | 22 | 48,554,947 | 48,159,130 | A | G | 0.659 |
+ 
+The chr6 control (75.9 Mb) is well outside the MHC window. Liftover: 10/10.
+ 
+### ISM attempt failed silently
+Ran `run_ism_pilot.py` on the controls. The run completed but **re-scored the 10 pilot SNPs** and overwrote `pilot_ism_scores.tsv` with identical values. Two causes, the first hiding the second:
+1. The edits making `run_ism_pilot.py` read its input path from the command line had not been saved, so the hardcoded pilot path was used.
+2. The control TSVs existed only on Hoffman2 (never committed and pushed), so the Mac did not have them. Because of (1) the script never tried to open them, so there was no "file not found" error.
+**Lesson:** a 15-minute run can produce a plausible-looking wrong file. Scripts should print the input and output paths they actually resolved, before doing any work.
+ 
+### Status
+✅ Control selection script written; 10 controls selected and lifted.
+⬜ Control ISM run (redone in Session 8).
+ 
+---
+
+## Session 8 — October 10–11, 2026
+**Goal:** Re-enter the project after a month away (start of C&S Bio 198A), sync both machines, run ISM on the controls
+ 
+### Inventory of both machines
+- Both on the same commit (`34cf0f2`); nothing had diverged.
+- Mac: the `run_ism_pilot.py` argument edits **had** saved but were uncommitted.
+- Hoffman2: control TSVs untracked; `data/` (PGC3 files, 456 MB) and `phase2/data/` untracked. The `.gz` files are correctly gitignored. Did **not** use `git add -A` on Hoffman2, to avoid pushing large files.
+### Fixes
+- Pushed the control TSVs from Hoffman2 (`19f15ed`).
+- Committed the argument edits (`b6bae16`). The first push was rejected because the remote had the control commit; resolved with `git pull --rebase`.
+- Added a printout of the resolved input and output paths at the start of `main()` (committed later, `6393041`).
+- **Environment:** `python3` on the Mac now resolves to Homebrew's Python, which has no torch (`ModuleNotFoundError`). Fix: always `source ~/alphagenome-env/bin/activate` first. `conda` and `module` are Hoffman2 commands and do not exist on the Mac.
+### Control ISM run
+```bash
+PYTORCH_ENABLE_MPS_FALLBACK=1 python3 run_ism_pilot.py \
+    phase1/data/scz_pgc3_control_10snps_hg38.tsv control_ism_scores.tsv
+```
+6,400 scores to `results/ism/control_ism_scores.tsv` (committed in Session 10).
+ 
+Summary over all output channels (padding not yet removed, so means are diluted, as in Session 4):
+ 
+| SNP | ATAC max | ATAC mean | DNase max | DNase mean |
+|---|---|---|---|---|
+| rs2067987 | 0.3079 | 0.0457 | 0.3412 | 0.0376 |
+| rs3777506 | 0.0925 | 0.0051 | 0.1518 | 0.0209 |
+| rs12807017 | 0.0380 | 0.0065 | 0.0490 | 0.0185 |
+| rs7137768 | 0.1073 | 0.0107 | 0.2431 | 0.0488 |
+| rs7326762 | 0.0222 | 0.0057 | 0.0418 | 0.0031 |
+| rs72730413 | 0.7608 | 0.0303 | 0.9421 | 0.1074 |
+| rs78807154 | 0.1396 | 0.0095 | 0.2071 | 0.0247 |
+| rs6033101 | 0.1195 | 0.0128 | 0.3394 | 0.0261 |
+| rs2898160 | 0.1499 | 0.0189 | 0.1552 | 0.0386 |
+| rs62225795 | 0.0767 | 0.0261 | 0.1614 | 0.0575 |
+ 
+### Observations
+- **hg38 reference = A1 for all 10 controls**, as for all 10 pilots: 20/20. This is not specific to lead SNPs; it is a property of how PGC3 reports alleles.
+- **The null has a tail.** rs72730413 (p = 0.53) has DNase max 0.94 and mean 0.107 (all channels), both larger than 9 of the 10 pilot SNPs; only rs2710323 is higher. Magnitude alone will not separate disease variants from controls; tissue specificity has to.
+### Review before the Choo meeting (October 11–12)
+Re-derived the whole project logic step by step (written up as the "Getting Recalibrated" slides, week of 10/12). Points worth keeping:
+- **MHC window.** chr6:25–34 Mb (hg19) is a rounded, conservative version of the extended MHC (xMHC, Horton et al., 2004, *Nat Rev Genet* 5:889–899; ~25.7–33.4 Mb). The rounded window is the default in GWASLab and is used in SCZ work (e.g. *Transl Psychiatry* 2022, doi:10.1038/s41398-022-01854-9). Other studies use different windows (e.g. chr6:26–34 Mb), so it is a stated choice. 20,457 − 5,994 MHC SNPs = 14,463 exactly, so no other filter removed SNPs.
+- **Padding.** Every padded head is padded to the next multiple of 128 (ATAC 167→256, DNase 305→384, histone 1,116→1,152). Future code should drop padding by the metadata name `Padding`, not by index thresholds, and assert the real-track counts.
+- **Unresolved:** our CNS counts differ from Choo's table (DNase 23 vs 21; histone ChIP 70 vs 100, probably cell lines). To be settled as a lab group.
+- **Candidate specificity statistics:** CNS − non-CNS (scales with overall loudness), log2(CNS mean / non-CNS mean) (scale-free), and mean CNS percentile rank within the variant (exact null 0.5). Choose empirically against controls.
+- **What each control answers:** random internal controls give the scale of an ordinary variant but sit in random genomic context; an external trait (height) controls for "GWAS hits sit in regulatory DNA"; the within-variant CNS vs non-CNS contrast cancels locus context. The height comparison is the one that supports a disease-specific claim.
+### Status
+✅ Both machines in sync; control ISM scores produced.
+⬜ Control analysis (needs `score_tracks.py`).
+ 
+---
+
+## Session 9 — October 12–13, 2026
+**Goal:** Present the recalibration to Choo; plan the week
+ 
+### Feedback from Choo (October 12 meeting)
+1. **Record the A1/A2 vs hg38 ref/alt mismatch per SNP.** Direction matters: if hg38 has A at a position and the GWAS says A raises risk, then substituting the alternate allele *reduces* risk.
+2. **Understand what the variant-scoring summation does and means.**
+    - summing signal in the 501 bp window to get an average of signal around the variant
+3. **Brain vs non-brain tissue classification will be decided as a lab group** at the next group meeting.
+4. **Plot before summarising.** Show variant score (y) against CNS vs non-CNS (x); compare means *and variances* as an intermediate step; see whether a high-variance score is driving things and which statistic could represent it.
+5. **Work out the edge cases of the liftover.**
+6. **Build visualisations** that give users intuition about the range and variability of scores.
+Also: send Choo the hg19 → hg38 pipeline; hand the pipeline to another undergraduate in about two weeks to test.
+ 
+### Decisions (October 13)
+- **Build risk direction into the pipeline now**, not later, documenting exactly how GWAS alleles are substituted.
+- **This week:** Session C = liftover package (strict script, edge cases, documentation); Session D = `score_tracks.py` data layer, distribution plots, scoring sensitivity.
+- **Deferred:** height GWAS control and a 50-SNP matched control set, until the score itself is understood.
+---
+
+## Session 10 — October 13–14, 2026
+**Goal:** Session C, steps C0–C2: audit the existing liftover code and replace it with one strict, documented script
+ 
+### C0 — Environments
+- Committed the outstanding work: path printout (`6393041`), control ISM scores (`4aaf666`), notebook/methods edits (`aa0afbc`). Hoffman2 pulled to match.
+- Mac had no chain file and no pyliftover. Installed `pyliftover 0.4.1` in `alphagenome-env`; downloaded `hg19ToHg38.over.chain.gz` (222 KB) to `phase1/data/` (gitignored).
+- Hoffman2: chain file present; `pyliftover` imports. Note: `which python` gives the base Anaconda Python even with `alphagenome_env` active.
+- Do not run `find ~` on the Mac: it walks iCloud folders and hangs.
+### C1 — Audit of the old code
+Liftover logic lived in two places: `phase1/liftover_to_hg38.py` and the end of `phase1/get_control_snps.py`.
+ 
+| Problem | Consequence |
+|---|---|
+| `convert_coordinate()` returns a **list**; code took `[0]` without checking its length | a SNP mapping to several places silently gets one of them |
+| strand returned but ignored | a SNP in a region inverted in hg38 passes; its hg38 base is the complement of the hg19 base |
+| `replace('chr', '')` on contig names | `chr6_GL000256v2_alt` would become chromosome `6_GL000256v2_alt` |
+| failed SNPs dropped, exit status 0 | a short output file looks as valid as a complete one |
+| chain path differed between the two files and matched neither real location | worked only from one particular folder |
+| `liftover_to_hg38.py` hardcoded to the 2018 CLOZUK files | **the PGC3 hg38 coordinates used since August had no committed script** |
+ 
+### C2 — New `phase1/liftover_to_hg38.py`
+Read pyliftover's source to confirm its behaviour: it returns `None` for an unknown chromosome, `[]` for an unmapped position, and otherwise a list sorted by chain score.
+ 
+- **Command-line tool:** `--input`, `--output`, optional `--chain`, `--chr-col`, `--pos-col`, `--id-col`, `--report`, `--allow-failures`.
+- **Strict by default.** Writes a SNP only if it maps uniquely, to a standard chromosome, to the same chromosome, on the + strand. Otherwise it records one of 7 failure statuses: `unmapped`, `multi`, `strand_flip`, `alt_contig`, `chrom_change`, `unknown_chrom`, `invalid_input`. Any failure means no output file and exit status 1; `--allow-failures` overrides.
+- **Guards:** refuses to re-lift a lifted file; refuses to overwrite its input; names missing columns; prints the chain download command.
+- **Outputs:** lifted TSV (input columns, hg38 `chr`/`pos`, plus `chr_hg19`/`pos_hg19`); per-SNP report; provenance log (command, chain md5, versions). The log is a separate file because comment lines at the top of a TSV would be read as the header.
+- 1-based ↔ 0-based conversion lives only in `lift_one()`.
+- Allele columns are not touched: liftover moves coordinates only.
+### Testing
+- **Synthetic chain + 13 SNPs:** every status, the last base of a mapped block and the first base of a gap, and invalid input (chromosome 23, text position, position 0). All correct. Each guard triggered and stopped the script.
+- **Real data:** re-lifted the 173 PGC3 lead SNPs (hg19) to a temporary file: 173 lifted, 0 failed, **0 positions differ** from the August file. The August PGC3 liftover is now reproducible from committed code.
+### Status
+✅ Strict liftover script written and validated.
+ 
+---
+ 
+## Session 11 — October 16, 2026
+**Goal:** Make every hg38 file come from the new script, remove the second liftover implementation, and make allele handling explicit
+ 
+### Regenerated hg38 files
+- Committed the script (`05a120a`).
+- Re-lifted the lead, pilot and control files: **173/173, 10/10, 10/10 positions identical** to the committed versions (differ 0, missing 0, extra 0). Committed with their reports and logs (`692bf7d`). Every line shows as changed in git because of the new `chr_hg19`/`pos_hg19` columns and the switch from `\r\n` to `\n` line endings.
+### One liftover implementation (C2b)
+- Removed the embedded liftover from `get_control_snps.py`, which now writes hg19 only and prints the liftover command to run next (`79a5261`). It no longer needs pyliftover.
+- **Regression test:** re-ran control selection on Hoffman2 with seed 42; the output was **byte-identical** to the committed control file, so only the liftover code was removed.
+### Allele refactor
+**Problem:** both selection scripts wrote A2 to a column named `ref` and A1 to `alt`. `run_ism_pilot.py` corrected this at run time, so every score was right, but the files said something false.
+ 
+**Direction formula, corrected.** The earlier rule `risk_oriented_score = −sign(beta) × score` only holds when hg38 ref = A1. General form:
+```
+risk_oriented_score = sign(beta) × variant_effect_score × (+1 if hg38_alt = A1, −1 if hg38_alt = A2)
+```
+i.e. log2(signal with risk allele ÷ signal with non-risk allele). Blank when beta = 0.
+ 
+**Palindromic SNPs.** For A/T and C/G SNPs, matching to hg38 cannot reveal which strand the GWAS used. Magnitude is unaffected; direction assumes the + strand. Supported by 17/17 non-palindromic SNPs matching on the + strand (a minus-strand non-palindromic SNP would match neither allele). **rs1198588 (best pilot candidate) is palindromic**, as are controls rs2067987 and rs7326762.
+ 
+**A1 — selection scripts.** Write `a1`, `a2`, and `a1_freq_controls` (PGC3 `FCON`, frequency of A1 in controls; needed later for allele-frequency-matched controls and for checking palindromic strand). New column order: `rsid chr pos a1 a2 a1_freq_controls beta pval`.
+ 
+**A2 — regenerate and verify (Hoffman2).** Check against the committed files: rsid, position, beta and p unchanged; new `a1` = old `alt`; new `a2` = old `ref`; frequency numeric in [0, 1].
+- First run: lead, pilot and MHC files OK; **control file had a blank frequency in all 10 rows.** Cause: the frequency line was missing from the control script's row dictionary, and `csv.DictWriter` **silently writes '' for a column missing from a row** (whereas an *extra* key raises an error).
+- Fix: added the line, plus a guard in both selection scripts that stops if any output column is missing from a row. Re-run: all four files OK. Re-lifted.
+**A3 — `run_ism_pilot.py`.**
+- Reads `a1`, `a2`, `beta`. Refuses old `ref`/`alt` files *before* loading the model.
+- `assign_alleles()` (pure function) decides `hg38_ref`, `hg38_alt`, `hg38_ref_is` (A1/A2), `palindromic`, the risk allele and the orientation.
+- New output columns: `a1 a2 beta hg38_ref hg38_alt hg38_ref_is palindromic … variant_effect_score risk_oriented_score`. New per-SNP file `*.variants.tsv` with status (`scored`/`skipped`) and reason. Exits 1 if any SNP is skipped, but still writes the rest.
+- Sequence fetch, one-hot encoding and `compute_variant_effect()` unchanged.
+- Fixed two latent bugs: an indel crashed the run before anything was saved; a `chr8`-style name was passed to Ensembl unchanged.
+- Tested with a stand-in model on 13 synthetic SNPs (every A1/A2 × beta-sign combination, palindromic, beta = 0 and NA, lowercase alleles, and five SNPs that must be skipped). Scores and risk scores matched hand calculations, and matched the original script's output exactly; the old `gwas_alleles_swapped` flag equals `hg38_ref_is == A1` on every row.
+**A4 — real-data regression.** Re-ran ISM on pilots and controls with the new script and compared track by track with the committed scores: **all 12,800 scores matched**, alleles matched, `hg38_ref_is` = A1 for all 20 SNPs, palindromic = rs1198588, rs2067987, rs7326762. Committed scores plus `*.variants.tsv`.
+ 
+### Status
+✅ One liftover implementation; all hg38 files reproducible.
+✅ Every score records its alleles, hg38 assignment and risk direction.
+ 
+---
+ 
+## Session 12 — October 18, 2026
+**Goal:** Measure how often each liftover edge case occurs in real data (C3) and document the package (C4)
+ 
+### Why a separate survey script
+`liftover_to_hg38.py` holds all rows in memory (right for hundreds of SNPs; would hit the August login-node memory error on 7.6M). `phase1/survey_liftover_edge_cases.py` streams the GWAS file and keeps only counts, using the **same `lift_one()`**, so it tests the pipeline's own code. Tested on a synthetic PGC3-format file (including p = 6×10⁻⁸ correctly *not* counted as significant and p = "NA" counted in neither p-value subset). Python 3.6+ compatible.
+ 
+### Run
+Hoffman2 compute node (`qrsh -l h_data=4G,h_rt=1:00:00`), pyliftover 0.4.1, **71 s**.
+ 
+| Status | All SNPs | p < 5×10⁻⁸ | p > 0.5 |
+|---|---|---|---|
+| lifted | 7,646,680 (99.829%) | 20,434 (99.888%) | 3,099,610 (99.849%) |
+| strand_flip | 8,304 (0.108%) | 12 | 2,712 |
+| unmapped | 3,809 (0.050%) | 10 | 1,559 |
+| alt_contig | 948 (0.012%) | 1 | 418 |
+| chrom_change | 26 | 0 | 11 |
+| multi | 0 | 0 | 0 |
+| **total** | **7,659,767** | **20,457** | **3,104,310** |
+| palindromic | 1,159,302 (15.1%) | 3,022 (14.8%) | 468,739 (15.1%) |
+ 
+Sanity checks: 7,659,767 rows and 20,457 significant SNPs both match the counts from Session 3. No non-numeric p-values.
+ 
+### Where the 23 significant failures are
+- **12 in the excluded MHC**, all strand flips, at chr6:26.74–26.76 Mb (hg19).
+- **11 within 1 Mb of a lead SNP that lifted**: 8 near rs5751191 (chr22:42.53–42.55 Mb; 7 unmapped, 1 alt contig), 2 near rs12489270 (chr3:16.86 Mb), 1 near rs12138231 (chr1:150.15 Mb).
+- **0 elsewhere.** No schizophrenia locus is lost. These 11 would matter only if every SNP in a locus were scored, not just the lead.
+### Palindromic share of each failure type
+strand_flip 1,383/8,304 (16.7%); unmapped 606/3,809 (15.9%); alt_contig 159/948 (16.8%); chrom_change 5/26 (19.2%). All close to the 15.1% background.
+ 
+### Interpretation
+- **Strand flips are the most common failure (63%).** The old code would have passed all 8,304. About 1 in 6 is palindromic, where the hg38 base matches the *other* GWAS allele and the risk direction would be silently reversed. Non-palindromic ones would have made `run_ism_pilot.py` stop ("matches neither").
+- **No multi-mappings** with this chain file.
+- **Planning for more controls:** 0.151% of null SNPs fail, so a random 50 has ~7% chance (100: ~14%) of including one that cannot be lifted. Strict mode will name it; replace it rather than relax the check.
+### Documentation and test package
+- `docs/liftover_README.md`: why, setup, usage, strict rules, coordinate convention, edge-case table with these frequencies, what liftover does not check, validation.
+- `docs/allele_conventions.md`: A1/A2 vs hg38 ref/alt vs risk allele, column glossary, both score formulas with a worked example (rs58120505), palindromic SNPs and how to verify their strand.
+- `tests/liftover/check_liftover.py` + `edge_cases_hg19.tsv`: six real PGC3 SNPs with known outcomes (rs58120505 → chr7:1,990,232; rs1198588 → chr1:98,087,276; rs748439 unmapped; rs4993393 alt contig; rs13213200 strand flip; one invalid) plus every guard; 22 checks.
+- `docs/TESTING_liftover.md`: step-by-step instructions and feedback questions for lab testers.
+### Status
+✅ Session C complete: liftover package written, validated, surveyed genome-wide and documented.
+⬜ Tag `liftover-v1.0` and share with lab testers.
+⬜ Session D: `score_tracks.py` (data layer), distribution plots, scoring-window sensitivity.
+ 
+---

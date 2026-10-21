@@ -1,0 +1,7 @@
+rsid	chr	pos	expected_status	expected_pos_hg38	note
+rs58120505	7	2029867	lifted	1990232	PGC3 pilot SNP; hg38 position checked against Ensembl GRCh38
+rs1198588	1	98552832	lifted	98087276	PGC3 pilot SNP
+rs748439	3	16857534	unmapped		genome-wide significant PGC3 SNP that cannot be lifted
+rs4993393	22	42534075	alt_contig		genome-wide significant PGC3 SNP that maps to an alt contig
+rs13213200	6	26755915	strand_flip		genome-wide significant PGC3 SNP (MHC) whose region is inverted in hg38
+rs_not_a_snp	23	1000	invalid_input		chromosome 23 does not exist
