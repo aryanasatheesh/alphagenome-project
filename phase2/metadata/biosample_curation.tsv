@@ -1,0 +1,133 @@
+ontology_curie	biosample_type	biosample_name	group	cell_class	brain_region	evidence
+UBERON:0002686	TISSUE	angular gyrus	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0009835	TISSUE	anterior cingulate cortex	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002967	TISSUE	cingulate gyrus	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0009834	TISSUE	dorsolateral prefrontal cortex	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001870	TISSUE	frontal cortex	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002022	TISSUE	insula	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002702	TISSUE	middle frontal gyrus	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002771	TISSUE	middle temporal gyrus	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002021	TISSUE	occipital lobe	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002902	TISSUE	occipital pole	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0007190	TISSUE	paracentral gyrus	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002581	TISSUE	postcentral gyrus	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002740	TISSUE	posterior cingulate gyrus	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001871	TISSUE	temporal lobe	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001872	TISSUE	parietal lobe	CNS_tissue	bulk_tissue	cerebral_cortex	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002336	TISSUE	corpus callosum	CNS_tissue	bulk_tissue	white_matter	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001873	TISSUE	caudate nucleus	CNS_tissue	bulk_tissue	basal_ganglia	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002626	TISSUE	head of caudate nucleus	CNS_tissue	bulk_tissue	basal_ganglia	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001874	TISSUE	putamen	CNS_tissue	bulk_tissue	basal_ganglia	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001882	TISSUE	nucleus accumbens	CNS_tissue	bulk_tissue	basal_ganglia	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001875	TISSUE	globus pallidus	CNS_tissue	bulk_tissue	basal_ganglia	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001954	TISSUE	Ammon\'s horn	CNS_tissue	bulk_tissue	hippocampus_amygdala	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002305	TISSUE	layer of hippocampus	CNS_tissue	bulk_tissue	hippocampus_amygdala	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001876	TISSUE	amygdala	CNS_tissue	bulk_tissue	hippocampus_amygdala	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001894	TISSUE	diencephalon	CNS_tissue	bulk_tissue	diencephalon	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001897	TISSUE	dorsal plus ventral thalamus	CNS_tissue	bulk_tissue	diencephalon	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001898	TISSUE	hypothalamus	CNS_tissue	bulk_tissue	diencephalon	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001905	TISSUE	pineal body	CNS_tissue	bulk_tissue	diencephalon	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002037	TISSUE	cerebellum	CNS_tissue	bulk_tissue	cerebellum	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002129	TISSUE	cerebellar cortex	CNS_tissue	bulk_tissue	cerebellum	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002245	TISSUE	cerebellar hemisphere	CNS_tissue	bulk_tissue	cerebellum	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0000988	TISSUE	pons	CNS_tissue	bulk_tissue	brainstem	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0001896	TISSUE	medulla oblongata	CNS_tissue	bulk_tissue	brainstem	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002038	TISSUE	substantia nigra	CNS_tissue	bulk_tissue	brainstem	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002148	TISSUE	locus ceruleus	CNS_tissue	bulk_tissue	brainstem	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0002240	TISSUE	spinal cord	CNS_tissue	bulk_tissue	spinal_cord	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0006469	TISSUE	C1 segment of cervical spinal cord	CNS_tissue	bulk_tissue	spinal_cord	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0000955	TISSUE	brain	CNS_tissue	bulk_tissue	whole_brain	UBERON part_of central nervous system (UBERON 2026-10-01)
+UBERON:0000941	TISSUE	cranial nerve II	CNS_tissue	bulk_tissue	optic_nerve	UBERON part_of central nervous system (UBERON 2026-10-01)
+NTR:1407	TISSUE	germinal matrix	CNS_tissue	bulk_tissue	developing_forebrain	"ENCODE provisional term; fetal-brain proliferative zone (Roadmap ""brain germinal matrix""); all tracks embryonic"
+UBERON:0000955	ORGANOID	brain	CNS_organoid	organoid	whole_brain	biosample type ORGANOID; UBERON brain
+CL:0000127	PRIMARY_CELL	astrocyte	CNS_primary_cell	astrocyte	unspecified	CL neural-cell lineage; primary cells; astrocytes are CNS glia by definition
+CL:0002603	PRIMARY_CELL	astrocyte of the cerebellum	CNS_primary_cell	astrocyte	cerebellum	CL neural-cell lineage; primary cells
+CL:0002605	PRIMARY_CELL	astrocyte of the cerebral cortex	CNS_primary_cell	astrocyte	cerebral_cortex	CL neural-cell lineage; primary cells
+CL:0002604	PRIMARY_CELL	astrocyte of the hippocampus	CNS_primary_cell	astrocyte	hippocampus_amygdala	CL neural-cell lineage; primary cells
+CL:0002606	PRIMARY_CELL	astrocyte of the spinal cord	CNS_primary_cell	astrocyte	spinal_cord	CL neural-cell lineage; primary cells
+CL:0000121	PRIMARY_CELL	Purkinje cell	CNS_primary_cell	neuron	cerebellum	CL neural-cell lineage; primary cells; Purkinje cells are cerebellar neurons
+CL:0000540	PRIMARY_CELL	neuron	CNS_primary_cell	neuron	unspecified	CL neural-cell lineage; primary cells; CNS origin assumed (FANTOM/CAGE primary neurons); location not given
+CL:0000047	PRIMARY_CELL	neuronal stem cell	CNS_primary_cell	neural_stem_progenitor	unspecified	CL neural-cell lineage; primary cells; location not given
+CL:0002453	PRIMARY_CELL	oligodendrocyte precursor cell	CNS_primary_cell	oligodendrocyte_lineage	unspecified	CL neural-cell lineage; primary cells; OPCs are CNS glia
+NTR:427	PRIMARY_CELL	neurosphere	CNS_primary_cell	neural_stem_progenitor	developing_forebrain	ENCODE: fetal (17 wk) ganglionic-eminence- or cortex-derived neurospheres (e.g. ENCBS368XNQ); all tracks embryonic
+CL:0000540	IN_VITRO_DIFFERENTIATED_CELLS	neuron	neural_in_vitro	neuron	n/a	CL neural-cell lineage; biosample type IN_VITRO_DIFFERENTIATED_CELLS (made from pluripotent stem cells)
+CL:0000679	IN_VITRO_DIFFERENTIATED_CELLS	glutamatergic neuron	neural_in_vitro	neuron	n/a	CL neural-cell lineage; biosample type IN_VITRO_DIFFERENTIATED_CELLS (made from pluripotent stem cells)
+CL:0000100	IN_VITRO_DIFFERENTIATED_CELLS	motor neuron	neural_in_vitro	neuron	n/a	CL neural-cell lineage; biosample type IN_VITRO_DIFFERENTIATED_CELLS (made from pluripotent stem cells)
+CL:0002319	IN_VITRO_DIFFERENTIATED_CELLS	neural cell	neural_in_vitro	neural_mixed	n/a	CL neural-cell lineage; biosample type IN_VITRO_DIFFERENTIATED_CELLS (made from pluripotent stem cells)
+CL:0011020	IN_VITRO_DIFFERENTIATED_CELLS	neural progenitor cell	neural_in_vitro	neural_stem_progenitor	n/a	CL neural-cell lineage; biosample type IN_VITRO_DIFFERENTIATED_CELLS (made from pluripotent stem cells)
+CL:0000047	IN_VITRO_DIFFERENTIATED_CELLS	neuronal stem cell	neural_in_vitro	neural_stem_progenitor	n/a	CL neural-cell lineage; biosample type IN_VITRO_DIFFERENTIATED_CELLS (made from pluripotent stem cells)
+NTR:474	IN_VITRO_DIFFERENTIATED_CELLS	ecto neural progenitor cell	neural_in_vitro	neural_stem_progenitor	n/a	ENCODE provisional term; IN_VITRO_DIFFERENTIATED_CELLS; embryonic (ESC-derived)
+CL:0011012	IN_VITRO_DIFFERENTIATED_CELLS	neural crest cell	neural_crest_in_vitro	neural_crest	n/a	CL neural crest cell (multipotent; gives rise to peripheral neurons, glia, melanocytes, craniofacial tissue), not CNS
+CL:2000044	*	brain microvascular endothelial cell	CNS_non_neural	vascular	unspecified	CL; blood vessel cell of the brain, not neural lineage
+CL:2000043	*	brain pericyte	CNS_non_neural	vascular	unspecified	CL; vascular mural cell of the brain
+CL:0002575	*	central nervous system pericyte	CNS_non_neural	vascular	unspecified	CL; vascular mural cell
+CL:0002590	*	smooth muscle cell of the brain vasculature	CNS_non_neural	vascular	unspecified	CL; vascular smooth muscle
+CL:0000706	*	choroid plexus epithelial cell	CNS_non_neural	choroid_plexus	unspecified	CL; CSF-secreting epithelium
+CL:0002549	*	fibroblast of choroid plexus	CNS_non_neural	choroid_plexus	unspecified	CL; fibroblast
+CL:0000708	*	leptomeningeal cell	CNS_non_neural	meninges	unspecified	CL; meningeal cell
+UBERON:0002360	*	meninx	CNS_non_neural	meninges	unspecified	UBERON part_of central nervous system (UBERON 2026-10-01); connective membrane, not neural tissue
+UBERON:0002363	*	dura mater	CNS_non_neural	meninges	unspecified	UBERON part_of central nervous system (UBERON 2026-10-01); connective membrane, not neural tissue
+UBERON:0000007	*	pituitary gland	CNS_non_neural	endocrine	unspecified	UBERON part_of central nervous system (UBERON 2026-10-01); mostly endocrine (anterior lobe is not neural)
+UBERON:0001359	*	cerebrospinal fluid	CNS_non_neural	fluid	unspecified	UBERON cerebrospinal fluid; not a tissue of cells
+*	*	A172	CNS_tumor_line	glioblastoma	n/a	glioblastoma line (standard annotation; not re-checked)
+*	*	Daoy	CNS_tumor_line	medulloblastoma	n/a	medulloblastoma line (standard annotation; not re-checked)
+*	*	D721Med	CNS_tumor_line	medulloblastoma	n/a	Cellosaurus CVCL_7901: medulloblastoma
+*	*	H4	CNS_tumor_line	neuroglioma	n/a	neuroglioma line (standard annotation; not re-checked)
+EFO:0002782	*	H54	CNS_tumor_line	glioblastoma	n/a	Cellosaurus CVCL_7185 (D-54MG/H54): glioblastoma, but flagged CONTAMINATED - shown to be an A-172 derivative
+*	*	M059J	CNS_tumor_line	glioblastoma	n/a	glioblastoma line (standard annotation; not re-checked)
+*	*	PFSK-1	CNS_tumor_line	PNET	n/a	Cellosaurus CVCL_1642: primitive neuroectodermal tumor, brain (right frontal lobe)
+*	*	U-87 MG	CNS_tumor_line	glioblastoma	n/a	glioblastoma line (standard annotation; not re-checked)
+UBERON:0001322	*	sciatic nerve	PNS	nerve	n/a	UBERON part_of peripheral nervous system
+UBERON:0001323	*	tibial nerve	PNS	nerve	n/a	UBERON part_of peripheral nervous system
+CL:0002573	*	Schwann cell	PNS	glia	n/a	CL Schwann cell: peripheral glia
+CL:0002576	*	perineural cell	PNS	nerve_sheath	n/a	CL; peripheral nerve sheath
+CL:0002167	*	olfactory epithelial cell	PNS	olfactory_epithelium	n/a	CL; nasal neuroepithelium, outside the CNS
+EFO:0003072	*	SK-N-SH	PNS_tumor_line	neuroblastoma	n/a	neuroblastoma (neural-crest tumour of the sympathetic nervous system), not brain (standard annotation)
+EFO:0005721	*	SK-N-DZ	PNS_tumor_line	neuroblastoma	n/a	neuroblastoma (standard annotation; not re-checked)
+*	*	BE2C	PNS_tumor_line	neuroblastoma	n/a	neuroblastoma, SK-N-BE(2)-C (standard annotation; not re-checked)
+*	*	SH-SY5Y	PNS_tumor_line	neuroblastoma	n/a	neuroblastoma; subclone of SK-N-SH (standard annotation)
+EFO:0002860	*	SK-N-MC	PNS_tumor_line	Askin_tumor	n/a	"Cellosaurus CVCL_0530: MISCLASSIFIED - ""originally thought to be a neuroblastoma ... shown to be from an Askin tumor"" (peripheral PNET); orbital metastasis"
+UBERON:0000966	*	retina	eye	bulk_tissue	n/a	UBERON part of eye (retina is not part_of CNS in UBERON)
+UBERON:0000970	*	eye	eye	bulk_tissue	n/a	UBERON part of eye (retina is not part_of CNS in UBERON)
+UBERON:0000019	*	camera-type eye	eye	bulk_tissue	n/a	UBERON part of eye (retina is not part_of CNS in UBERON)
+UBERON:0001797	*	vitreous humor	eye	bulk_tissue	n/a	UBERON part of eye (retina is not part_of CNS in UBERON)
+CL:0002586	*	retinal pigment epithelial cell	eye	RPE	n/a	CL; retinal pigment epithelium
+*	*	WERI-Rb-1	eye	retinoblastoma	n/a	Cellosaurus CVCL_1792: retinoblastoma, eye globe
+*	*	H1	pluripotent	ESC	n/a	pluripotent stem cell line (standard annotation)
+*	*	H1-hESC	pluripotent	ESC	n/a	pluripotent stem cell line (standard annotation)
+*	*	H7	pluripotent	ESC	n/a	pluripotent stem cell line (standard annotation)
+*	*	H9	pluripotent	ESC	n/a	pluripotent stem cell line (standard annotation)
+*	*	HUES6	pluripotent	ESC	n/a	pluripotent stem cell line (standard annotation)
+*	*	HUES48	pluripotent	ESC	n/a	pluripotent stem cell line (standard annotation)
+*	*	HUES64	pluripotent	ESC	n/a	pluripotent stem cell line (standard annotation)
+*	*	ES-I3	pluripotent	ESC	n/a	pluripotent stem cell line (standard annotation)
+*	*	CyT49	pluripotent	ESC	n/a	pluripotent stem cell line (standard annotation)
+*	*	iPS DF 6.9	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	iPS DF 19.11	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	iPS-11a	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	iPS-15b	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	iPS-18a	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	iPS-18c	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	iPS-20b	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	iPS-NIHi11	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	GM23338	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	WTC11	pluripotent	iPSC	n/a	pluripotent stem cell line (standard annotation)
+*	*	UCSF-4	pluripotent	ESC	n/a	Cellosaurus CVCL_A022: embryonic stem cell (blastocyst)
+*	*	L1-S8	pluripotent	iPSC	n/a	Cellosaurus CVCL_AV88: iPSC from bone-marrow mononuclear cells
+*	*	L1-S8R	pluripotent	iPSC	n/a	Cellosaurus CVCL_AV89: iPSC (sister line of L1-S8)
+*	*	NT2/D1	pluripotent	embryonal_carcinoma	n/a	embryonal carcinoma (NTERA-2 cl.D1); can be differentiated to neurons but is not neural as profiled
+*	*	gastrocnemius medialis	non_neural	reviewed	n/a	"reviewed: muscle; matched ""astro"""
+*	*	gastroesophageal sphincter	non_neural	reviewed	n/a	"reviewed: GI; matched ""astro"""
+*	*	Peyer\'s patch	non_neural	reviewed	n/a	"reviewed: gut lymphoid; matched ""eye"""
+*	*	renal cortical epithelial cell	non_neural	reviewed	n/a	"reviewed: kidney; matched ""cortic"""
+*	*	cortex of kidney	non_neural	reviewed	n/a	"reviewed: kidney; matched ""cortex"""
+*	*	renal cortex interstitium	non_neural	reviewed	n/a	reviewed: kidney
+*	*	left renal cortex interstitium	non_neural	reviewed	n/a	reviewed: kidney
+*	*	right renal cortex interstitium	non_neural	reviewed	n/a	reviewed: kidney
+*	*	outer medulla of kidney	non_neural	reviewed	n/a	"reviewed: kidney; matched ""medulla"""
+*	*	saliva-secreting gland	non_neural	reviewed	n/a	reviewed: salivary gland
+*	*	cardiac mesenchymal cell	non_neural	reviewed	n/a	reviewed: heart; CL lists a neural-crest ancestry, not neural tissue
+*	*	medial rectus extraocular muscle	non_neural	reviewed	n/a	reviewed: skeletal muscle that moves the eye; UBERON places it under eye
+*	*	lateral rectus extra-ocular muscle	non_neural	reviewed	n/a	reviewed: skeletal muscle that moves the eye; UBERON places it under eye
+*	*	inferior rectus extraocular muscle	non_neural	reviewed	n/a	reviewed: skeletal muscle that moves the eye; UBERON places it under eye
+*	*	superior rectus extraocular muscle	non_neural	reviewed	n/a	reviewed: skeletal muscle that moves the eye; UBERON places it under eye

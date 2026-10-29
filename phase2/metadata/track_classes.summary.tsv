@@ -1,0 +1,14 @@
+group	analysis_set	ATAC	DNASE	CHIP_HISTONE	RNA_SEQ	CAGE	CHIP_TF
+CNS_tissue	brain	0	12	52	36	56	1
+CNS_primary_cell	brain	0	4	18	5	10	3
+CNS_organoid	neural_model	0	0	0	0	0	1
+neural_in_vitro	neural_model	1	4	32	9	0	13
+neural_crest_in_vitro	excluded	0	1	0	2	0	1
+CNS_non_neural	excluded	0	4	4	1	16	2
+CNS_tumor_line	excluded	0	5	0	10	2	6
+PNS	excluded	1	2	6	5	8	3
+PNS_tumor_line	excluded	0	4	19	6	2	35
+eye	excluded	0	4	5	2	8	2
+pluripotent	excluded	2	10	94	17	0	85
+non_neural	background	163	255	886	574	444	1465
+padding	padding	89	79	36	101	94	47

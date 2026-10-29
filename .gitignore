@@ -33,3 +33,4 @@ results/pretrained_baseline/*.npz
 
 # Outputs directory
 phase2/outputs/
+phase2/metadata/ontologies/*.obo
