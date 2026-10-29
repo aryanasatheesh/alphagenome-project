@@ -1051,8 +1051,8 @@ strand_flip 1,383/8,304 (16.7%); unmapped 606/3,809 (15.9%); alt_contig 159/948 
 - `tests/liftover/check_liftover.py` + `edge_cases_hg19.tsv`: six real PGC3 SNPs with known outcomes (rs58120505 → chr7:1,990,232; rs1198588 → chr1:98,087,276; rs748439 unmapped; rs4993393 alt contig; rs13213200 strand flip; one invalid) plus every guard; 22 checks.
 - `docs/TESTING_liftover.md`: step-by-step instructions and feedback questions for lab testers.
 ### Status
-✅ Session C complete: liftover package written, validated, surveyed genome-wide and documented.
+✅ Liftover package written, validated, surveyed genome-wide and documented.
 ⬜ Tag `liftover-v1.0` and share with lab testers.
-⬜ Session D: `score_tracks.py` (data layer), distribution plots, scoring-window sensitivity.
+⬜ Next steps: `score_tracks.py` (data layer), distribution plots, scoring-window sensitivity.
  
 ---
