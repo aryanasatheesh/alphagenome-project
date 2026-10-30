@@ -259,7 +259,6 @@ Brain tracks by donor stage: DNase 2 prenatal, 10 postnatal, 4 unknown (cultured
 3. Should FANTOM primary neurons and neuronal stem cells, whose location is not given, count as brain? They appear only in CAGE.
 4. Should prenatal and postnatal brain be analysed separately, given the fetal-brain focus? DNase has only 2 prenatal brain tracks.
 5. Is pituitary gland (mostly endocrine) correctly excluded?
-6. Choo's July counts were 21 CNS DNase and 100 histone tracks; ours are 16 brain + 4 neural\_model DNase and 70 brain histone. Which definition produced hers?
 
 ## Sources
 
