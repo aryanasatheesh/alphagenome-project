@@ -1,6 +1,6 @@
 # AlphaGenome Tracks: Structure, Identification, and Brain vs iPSC Use
 
-Oct 28, 2026 · @JS
+Oct 28, 2026
 
 ## Summary
 
