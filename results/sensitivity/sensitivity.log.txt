@@ -1,0 +1,19 @@
+date    : 2026-10-29T15:52:05
+labels  : phase2/metadata/track_classes.tsv  md5 ba877d78525529328f0c4838f163e678
+input   : phase1/data/scz_pgc3_pilot_10snps_hg38.tsv  md5 078231dd0544b3747593d39b75d2f976
+input   : phase1/data/scz_pgc3_control_10snps_hg38.tsv  md5 b4976b61a58f529da994681fea55e926
+input   : results/ism/pilot_ism_scores.tsv  md5 c6d648c201194a5b6c3587e66529f8bc
+input   : results/ism/control_ism_scores.tsv  md5 38917bb580f2ad0ed9f051acda1703b3
+weights : /Users/aryana/alphagenome-weights/model_fold_0.safetensors
+device  : mps
+
+checks  : rs1198588  max |diff| baseline vs run_ism_pilot 2.7e-07 | baseline vs library skipped | run_ism_pilot vs committed file 5.0e-07 (305 tracks)
+units   : rs1198588  sum of 128 bp bins / sum of 1 bp values over the same 512 bp: median 0.876 across 304 tracks (~1 = bins hold sums, ~0.0078 = bins hold means)
+checks  : rs2710323  max |diff| baseline vs run_ism_pilot 2.7e-07 | baseline vs library skipped | run_ism_pilot vs committed file 5.0e-07 (305 tracks)
+units   : rs2710323  sum of 128 bp bins / sum of 1 bp values over the same 512 bp: median 0.941 across 305 tracks (~1 = bins hold sums, ~0.0078 = bins hold means)
+checks  : rs2238057  max |diff| baseline vs run_ism_pilot 3.7e-07 | baseline vs library skipped | run_ism_pilot vs committed file 5.0e-07 (305 tracks)
+units   : rs2238057  sum of 128 bp bins / sum of 1 bp values over the same 512 bp: median 0.981 across 305 tracks (~1 = bins hold sums, ~0.0078 = bins hold means)
+checks  : rs72730413  max |diff| baseline vs run_ism_pilot 2.6e-07 | baseline vs library skipped | run_ism_pilot vs committed file 4.9e-07 (305 tracks)
+units   : rs72730413  sum of 128 bp bins / sum of 1 bp values over the same 512 bp: median 0.971 across 289 tracks (~1 = bins hold sums, ~0.0078 = bins hold means)
+
+written : 84 summary rows, 25620 score rows
