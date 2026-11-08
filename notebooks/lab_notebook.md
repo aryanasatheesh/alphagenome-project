@@ -154,8 +154,8 @@ This is the variant effect score.
 After one score per track, optionally average/max across subsets of tracks — e.g., mean across all 21 brain DNase tracks → single "brain DNase effect" per SNP. This is how we produce the brain vs non-brain comparison.
  
 ### AggregationType naming convention
-Options like `DIFF_SUM_LOG2` are read right to left (innermost operation first):
-- `DIFF_SUM_LOG2` → apply log2 first, then sum, then compute ALT − REF
+Options like `DIFF_LOG2_SUM` are read right to left (innermost operation first):
+- `DIFF_LOG2_SUM` → apply log2 first, then sum, then compute ALT − REF
 - This is the chromatin accessibility formula above
 
 ### Key concepts 
@@ -1056,3 +1056,280 @@ strand_flip 1,383/8,304 (16.7%); unmapped 606/3,809 (15.9%); alt_contig 159/948 
 ⬜ Next steps: `score_tracks.py` (data layer), distribution plots, scoring-window sensitivity.
  
 ---
+
+## Session 13 (D1) — October 14–21, 2026
+**Goal:** Work out what every AlphaGenome output track is and label each one. This answers Choo's Slack question (Oct 14: "what alphagenome track is which? how do i tell which is brain or ipsc?") and her 10/12 note to classify tissues as a lab group.
+ 
+**Decision before starting:** research the classification ourselves and build a preliminary label file plus the pipeline that uses it. The lab group then reviews the decisions rather than starting from scratch.
+ 
+### Sources
+- **Track metadata:** `google-deepmind/alphagenome_research`, `OutputMetadataResponse_ORGANISM_HOMO_SAPIENS.textproto` (md5 `474494fa3859c361d40a735b8d9a531a`). Metadata row *i* = output channel *i* of that head.
+- **Ontologies:** Uberon anatomy (release 2026-10-01) and Cell Ontology (release 2026-06-08), `basic.obo` versions. Stored in `phase2/metadata/ontologies/` (gitignored, large).
+- **Cellosaurus:** for cell-line identity and known problems.
+- **ENCODE biosample pages:** for the parent line and donor of in-vitro samples.
+### What a track is
+- **Heads and channels.** Each head is one assay, and each channel is one training experiment.
+- **Padding.** Heads are padded with all-zero channels named `Padding` up to a multiple of 128, always as one block at the end:
+  | Head | Real tracks | Channels |
+  |---|---|---|
+  | ATAC | 167 | 256 |
+  | DNase | 305 | 384 |
+  | CAGE | 546 | 640 |
+  | RNA-seq | 667 | 768 |
+  | Histone ChIP | 1,116 | 1,152 |
+  | TF ChIP | 1,617 | 1,664 |
+  | PRO-cap | 12 | 128 |
+  6,126 channels in total, 563 of them padding.
+- **Fields.** Each real track has an ontology term, a biosample type, a biosample name, a life stage (set **per track**), the assay, a histone mark or TF, and a data source.
+- **Ontology prefix = kind of sample:**
+  - UBERON: tissue
+  - CL: cell type
+  - EFO/CLO: cell line
+  - NTR: provisional ENCODE term
+- **Biosample type = where the cells came from:**
+  - TISSUE
+  - PRIMARY_CELL
+  - CELL_LINE
+  - IN_VITRO_DIFFERENTIATED_CELLS
+  - ORGANOID
+### How to tell brain from iPSC (the answer to Choo's question)
+- **Real brain** = TISSUE or PRIMARY_CELL whose ontology term is part of the central nervous system.
+- **Stem-cell-derived neural** = IN_VITRO_DIFFERENTIATED_CELLS. These share names with real cell types (e.g. "neural progenitor cell"), so only the type separates them.
+- **Pluripotent lines** (H1, H9, WTC11, iPS lines) = CELL_LINE.
+- **ESC- vs iPSC-derived:** the stage of an in-vitro sample is the stage of the **parent line's donor**. `embryonic` → ESC-derived; `adult`/`child` → iPSC-derived.
+  - Confirmed on ENCODE: motor neurons are iPSC-derived from a 49-year-old donor (ENCBS745APJ); glutamatergic neurons "originated from WTC11" (ENCBS229NUR).
+- **Fetal vs adult:** read the stage per track, because the same sample name can be embryonic for one assay and adult for another. For example, "brain" DNase is embryonic, while some "brain" histone tracks are adult.
+### Method: `phase2/build_track_classes.py`
+1. Parse the metadata and the two ontologies.
+2. **Find candidates with the ontology, not names.** Candidates are tracks whose term is part of the CNS (UBERON:0001017), PNS (UBERON:0000010) or eye (UBERON:0000970), or whose cell type descends from a neural cell type (CL:0002319, CL:0000540, CL:0000125, CL:0011020, CL:0000047, CL:0000133, CL:0011012). Names are used only to flag extra candidates for review.
+3. **Every candidate needs a reviewed row in `phase2/metadata/biosample_curation.tsv`.** That file has 132 rows, each with a group, cell class, brain region and evidence. Rows match on (ontology ID, biosample type, name), with `*` as a wildcard; the most specific row wins.
+4. **The build stops** if:
+   - an ontology candidate has no reviewed row,
+   - a curated row matches no track, or
+   - two rows match the same sample equally well.
+   So new metadata can't change the brain set unnoticed.
+5. Everything else is `non_neural`.
+6. **Output:** `phase2/metadata/track_classes.tsv`, one row per channel for all heads. Columns: `output_type, track_index, track_name, is_padding, ontology_curie, biosample_type, biosample_name, stage, life_stage_group, group, analysis_set, origin, cell_class, brain_region, assay, histone_mark, tf, data_source, gtex_tissue, strand, evidence`. Plus `.summary.tsv` and `.log.txt` (input md5s and ontology versions).
+7. **To change a decision:** edit the row's `group` and rerun. No code changes are needed.
+### Problems found and fixed while building
+- **Ontology parser bug.** My first OBO parser kept qualifiers such as `{is_inferred="true"}` inside the parent ID, so some `is_a` links were silently lost. After the fix, the build found 7 candidates the curation had missed and stopped, as designed:
+  - temporal lobe, parietal lobe and corpus callosum → added as CNS_tissue
+  - four extraocular muscles (caught by the eye search) → reviewed as non_neural
+- **Cell-line IDs.** Some EFO IDs I had first written into the curation for cell lines could not be verified. I replaced them with exact name matching (`*` ID). Only the IDs I checked are kept: EFO:0002860 SK-N-MC, EFO:0003072 SK-N-SH, EFO:0005721 SK-N-DZ, EFO:0002782 H54.
+### Traps found
+- **Name matching gives false hits:** "g**astro**cnemius", "renal **cortex**", "P**eye**r's patch".
+- **Retina** is filed under eye in Uberon, not CNS.
+- **Located in the brain is not the same as neural:** brain microvascular endothelium, pericytes and vascular smooth muscle are blood-vessel cells.
+- **Neuroblastoma lines** (SK-N-SH, SK-N-DZ, BE2C, SH-SY5Y) are peripheral nervous system / neural crest, not brain.
+- **SK-N-MC** is an Askin tumour, not a neuroblastoma (Cellosaurus CVCL_0530).
+- **H54** is an A-172 derivative (CVCL_7185).
+- **UCSF-4** is an ESC line (CVCL_A022) and **L1-S8** is an iPSC line (CVCL_AV88).
+- **Tumour lines in the curation:** D721Med (medulloblastoma), PFSK-1 (PNET), WERI-Rb-1 (retinoblastoma).
+- **Cell-type names carry no location:** in the Cell Ontology, "neuron" and "astrocyte" are not linked to the CNS, and "neural progenitor cell" is not even classed under neural cell.
+### Groups → analysis sets
+- **brain:** CNS_tissue, CNS_primary_cell
+- **neural_model:** neural_in_vitro, CNS_organoid
+- **excluded:** neural_crest_in_vitro, CNS_non_neural, CNS_tumor_line, PNS, PNS_tumor_line, eye, pluripotent
+- **background:** non_neural
+"Excluded" samples are neither clearly brain nor clearly unrelated to brain, so they sit out of **both** sides of the comparison. They can still be analysed as their own groups.
+ 
+### Counts (real tracks)
+ 
+| | ATAC | DNase | Histone | RNA-seq | CAGE | TF ChIP |
+|---|---|---|---|---|---|---|
+| brain | **0** | 16 | 70 | 41 | 66 | 4 |
+| neural_model | 1 | 4 | 32 | 9 | 0 | 14 |
+| excluded | 3 | 30 | 128 | 43 | 36 | 134 |
+| background | 163 | 255 | 886 | 574 | 444 | 1,465 |
+ 
+- **ATAC has no brain tracks.** Its one neural track is iPSC-derived motor neurons. This is the strongest argument for fine-tuning on fetal brain ATAC.
+- **Brain by life stage:**
+  - DNase: 2 prenatal, 10 postnatal, 4 unknown (cultured astrocytes)
+  - Histone: 21 prenatal, 37 postnatal, 12 unknown
+- **Brain histone tracks span 11 marks** (e.g. 10 H3K27ac, 15 H3K4me3, 6 H3K27me3), so histone must be analysed **per mark**. Active and repressive marks must not be averaged together.
+### Changes from the August DNase "CNS" list (23 → 16 brain)
+- **Kept (12):**
+  - astrocyte; astrocytes of the cerebellum, hippocampus and spinal cord
+  - brain (embryonic), spinal cord (embryonic)
+  - frontal cortex, dorsolateral prefrontal cortex
+  - putamen, head of caudate nucleus
+  - cerebellum, cerebellar cortex
+- **→ neural_model (4):** neuronal stem cell, neural progenitor cell, ecto neural progenitor (ESC-derived); glutamatergic neuron (iPSC-derived).
+- **→ excluded (7):** 3 brain blood-vessel cell types; neural crest cell; SK-N-SH; SK-N-DZ; SK-N-MC.
+- **Added (4), missed in August:** pons, globus pallidus, Ammon's horn, posterior cingulate gyrus.
+- **Session 1 table comparison:** the Session 1 brain table (21 DNase / 100 histone) is close to our brain + neural_model (20 / 102). The difference is probably mostly whether stem-cell-derived neural cells count as brain. To check track by track with Choo.
+### Run on the Mac
+`python phase2/build_track_classes.py` → all curated rows matched, no unreviewed candidates, no ambiguous matches. Output counts are identical to the sandbox build.
+ 
+### Documentation
+`docs/alphagenome_tracks_guide.md` covers:
+- what a track is
+- the metadata fields
+- how to tell brain from iPSC
+- the traps
+- the label scheme and counts
+- how to change a decision
+- changes from August
+- five open questions for the lab group
+- sources
+Written so other lab members (e.g. Nadia) can use it.
+ 
+### Open questions for the lab group
+1. Do stem-cell-derived neural cells count as brain?
+2. Brain tumour lines: exclude (current) or keep as their own group?
+3. FANTOM primary neurons and neuronal stem cells with no location (CAGE only): brain?
+4. Split prenatal and postnatal brain? DNase has only 2 prenatal tracks.
+5. Is pituitary correctly excluded?
+### Status
+✅ Every output channel labelled; brain vs stem-cell-derived vs cell line answered and documented.
+⬜ Lab-group review of the 5 questions; then edit the curation file and rebuild.
+ 
+---
+ 
+## Session 14 (D2) — October 22–29, 2026
+**Goal:** Join the ISM scores to the new labels in one place, then follow Choo's 10/12 notes:
+- plot score (y) by CNS / non-CNS (x)
+- compare means **and variances**
+- plot the distributions before summarizing
+- visualize the range and variability of scores
+### `phase2/score_tracks.py`: the single place where scores meet labels
+- **Input:** any number of ISM score files (`--scores pilot=… control=…`) and `track_classes.tsv`.
+- **Checks (stops if any fails):**
+  - every score row has a label, so the channel numbering is intact
+  - padding is one block at the end of each head
+  - after dropping padding, each SNP has exactly the head's real-track count (305 DNase, 167 ATAC), so a truncated or duplicated run can't pass
+  - no duplicate rows
+  - each SNP has one set of alleles across all rows
+  - old-format files (`true_ref`/`true_alt`) are refused with a hint
+  - set names must be unique
+- **Outputs:**
+  - `results/summaries/track_scores_long.tsv`: one row per set × SNP × real track, with SNP fields, label fields, score, |score| and risk-oriented score
+  - `track_scores_by_set.tsv`: per SNP × head × analysis set, with n, mean, variance, median and max of |score|, and mean risk-oriented score
+  - a log with input md5s
+- **Run:** pilot and control files each have 6,400 rows. 1,680 padding rows were dropped from each, leaving 4,720 per set and 9,440 in total (6,100 DNase + 3,340 ATAC).
+- **Regression check:** recomputing the August CNS vs non-CNS summary from the new table with the **August** CNS list reproduced the August numbers for **10/10 pilots**. So any change in results comes from the new labels, not from the code.
+### `phase2/plot_track_scores.py`: look before summarizing
+Reads only the tidy table and draws DNase by default. |score| is on a log axis shared across panels; values below 10⁻⁴ are drawn at 10⁻⁴. Colours: brain blue, neural_model orange, excluded green, background grey.
+1. `dnase_1_per_snp_strips.png`: one panel per SNP. Every track's |score| is a dot, split by analysis set, with each set's mean marked. Pilots come first, then controls, each sorted by brain ÷ background.
+2. `dnase_2_means_variances.png`: brain vs background mean |score| (left) and variance (right), one point per SNP, pilots vs controls.
+3. `dnase_3_score_ranges.png`: each SNP's full spread across all tracks, with brain tracks overlaid.
+4. `dnase_4_top_tracks_<rsid>.png`: the tracks with the largest |score|, coloured by set. Drawn for rs1198588, rs2710323, rs2238057 and rs72730413.
+Plot fixes made along the way: overlapping per-row y labels were replaced by one shared label, and a colliding label was moved.
+ 
+### Results (DNase; 16 brain vs 255 background tracks; mean |score| with variance in brackets)
+ 
+| Set | SNP | Brain | Background | Ratio |
+|---|---|---|---|---|
+| pilot | rs1198588 | 0.219 (0.0369) | 0.047 (0.0030) | **4.62** |
+| pilot | rs2238057 | 0.075 (0.0035) | 0.044 (0.0036) | **1.73** |
+| pilot | rs58120505 | 0.018 (0.0001) | 0.016 (0.0001) | 1.17 |
+| pilot | rs11191580 | 0.084 (0.0006) | 0.072 (0.0016) | 1.16 |
+| pilot | rs4702 | 0.044 (0.0023) | 0.049 (0.0026) | 0.90 |
+| pilot | rs12129573 | 0.035 (0.0032) | 0.045 (0.0040) | 0.78 |
+| pilot | rs13107325 | 0.031 (0.0023) | 0.045 (0.0028) | 0.69 |
+| pilot | rs4129585 | 0.045 (0.0013) | 0.077 (0.0042) | 0.58 |
+| pilot | rs778371 | 0.009 (0.0001) | 0.018 (0.0003) | 0.49 |
+| pilot | rs2710323 | 0.154 (0.0216) | 0.576 (0.4203) | **0.27** |
+| controls | 10 SNPs | | | 0.56–1.13 |
+ 
+### Interpretation
+- **Only rs1198588 and rs2238057 are clearly above every control.** rs58120505 (1.17) and rs11191580 (1.16) are only just above the top control (1.13). With 10 controls this is descriptive, not a test.
+- **rs1198588's ratio rose from 2.73 (August labels) to 4.62.** This comes only from cleaning the labels: removing neuroblastoma and vascular tracks, and adding the basal ganglia tracks August had missed.
+- **Variance shows what the mean hides.** rs1198588's brain variance is 12× its background variance (0.0369 vs 0.0030), so the brain tracks are not one population:
+  - **High** in adult neuron-containing tissue: globus pallidus 0.53, putamen 0.51, pons 0.43, caudate 0.42, Ammon's horn 0.38, posterior cingulate 0.35, DLPFC 0.33.
+  - **Low** in cultured astrocytes (≤ 0.09), cerebellum (0.02) and fetal brain (0.02).
+  - High in ESC-derived neural progenitors (0.46) but with the **opposite sign**: adult tissue +, NPCs −.
+  - Its top 30 tracks also include eye/RPE, retinoblastoma (WERI-Rb-1), medulloblastoma (D721Med) and Ewing-family lines (A673, SK-N-MC). "Neural/neuroectodermal" may describe it better than brain-only.
+  - It is palindromic, so the magnitude is solid but the **direction assumes the + strand**.
+- **rs2238057** is highest in cerebellum (cerebellar cortex 0.23, cerebellum 0.20), with all brain tissue in the same direction.
+- **rs2710323** has the largest effects of any SNP (max 4.42, immature NK cells), but **all of its top 30 tracks are immune or blood** (T, NK and myeloid cells, thymus). This points to a non-brain mechanism.
+- **Control rs72730413** has large effects (max 0.94, bigger than 9 of 10 pilots) but is not brain-enriched (0.57). Big effect is not the same as brain effect.
+- **Cultured astrocytes are low for every pilot.** Question for the lab: are cultured astrocytes a good proxy for brain astrocytes?
+### Status
+✅ Scores joined to labels with checks; August numbers reproduced 10/10.
+✅ Distributions, means, variances, ranges and top tracks plotted (Choo's 10/12 notes).
+⬜ Choose a specificity statistic; build a larger matched control set.
+⬜ Decide whether A673 and SJCRH30 belong in background.
+ 
+---
+
+## Session 15 (D3) — October 29 – November 7, 2026
+**Goal:** Understand exactly what the variant effect score measures (Choo, 10/12: "understand how the variant-scoring summation works") and test whether our conclusions depend on how it is computed
+
+### What the score is
+- `score = log2(1 + Σ ALT) − log2(1 + Σ REF)`, Σ over the 501 bp centred on the variant (positions 65,286–65,786 of the 131,072 bp input, 0-based), per track, at 1 bp resolution.
+- Meaning: fold change in the total predicted accessibility of the element around the variant. +1 = ALT doubles it, −1 = halves it.
+- The +1 pseudocount avoids log(0) and damps fold changes where the signal is small (Σ 0.5 → 1.0 gives +0.42 rather than +1.00).
+- **Verified against source code:**
+  - AlphaGenome's `RECOMMENDED_VARIANT_SCORERS['DNASE']` is `CenterMaskScorer(width=501, aggregation_type=DIFF_LOG2_SUM)`.
+  - `alphagenome-pytorch` 0.3.1 defines `DIFF_LOG2_SUM` as `log2(1 + alt_sum) − log2(1 + ref_sum)`, and its window arithmetic (`create_center_mask`) is identical to ours.
+  - **Our score is AlphaGenome's own recommended DNase scorer.**
+- **Correction to Session 1 notes (July):** the "AggregationType naming convention" paragraph calls this aggregation `DIFF_SUM_LOG2`. That is a different scorer (Σ of per-base log2(x+1) differences). Ours is `DIFF_LOG2_SUM`.
+- Written up in `docs/variant_scoring.md`.
+
+### Sensitivity analysis: `phase2/scoring_sensitivity.py`
+- **SNPs:** rs1198588, rs2238057 (brain-leaning pilots), rs2710323 (immune pilot), rs72730413 (control with large effects). One model run (ref + alt) per SNP on the Mac (MPS).
+- **21 ways of rescoring all 305 real DNase tracks:**
+  - windows 1, 11, 101, 501, 2001, 10001, 100001 bp and the whole input
+  - pseudocounts 0.01, 0.1, 1, 10, 100
+  - six aggregations: log of sums (ours), sum of logs, difference of means, difference of sums, L2 of log1p, log ratio of peaks
+  - 501 and 2001 bp windows on the 128 bp output
+- **Metrics per setting:**
+  - Spearman of |score| vs 501 bp
+  - top-20 overlap
+  - sign agreement (tracks with |score| > 0.001)
+  - brain ÷ background mean |score|
+  - brain tracks' mean percentile within background
+- **Built-in checks.** The script stops unless its baseline equals the pipeline's score, the library scorer, and the committed scores.
+- **Tested before running.** Used a stand-in model with the real track labels. The window arithmetic was compared with a port of the library mask at every width and resolution, each aggregation was checked by hand, and a tampered score file was correctly refused.
+- **Pre-specified criterion (Oct 29, before running):** a conclusion is robust if it holds for windows 101–2001 bp, pseudocounts 0.1–10 and the sum-based aggregations.
+
+### Checks
+- Baseline vs `run_ism_pilot.compute_variant_effect`: max |diff| 2.6–3.7 × 10⁻⁷ (float64 vs float32).
+- Today's run vs the committed October scores: max |diff| 4.9–5.0 × 10⁻⁷, which is the 6-decimal rounding. **Scores are reproducible from the weights.**
+- Library check skipped: the installed `alphagenome-pytorch` has no `variant_scoring` module.
+
+### Results (brain ÷ background / brain percentile)
+
+| Setting | rs1198588 | rs2238057 | rs2710323 | rs72730413 (control) |
+|---|---|---|---|---|
+| 501 bp (ours) | 4.62 / 0.72 | 1.73 / 0.73 | 0.27 / 0.23 | 0.57 / 0.40 |
+| 101 bp | 2.32 / 0.72 | 1.33 / 0.69 | 0.32 / 0.23 | 0.54 / 0.33 |
+| 2001 bp | 6.32 / 0.77 | 2.05 / 0.74 | 0.27 / 0.25 | 0.58 / 0.45 |
+| all 21 settings | 1.29–6.97 / 0.61–0.85 | 0.85–2.05 / 0.46–0.79 | 0.15–0.51 / 0.17–0.42 | 0.34–0.95 / 0.33–0.62 |
+
+### Interpretation
+1. **Pseudocount is irrelevant** between 0.01 and 10 (Spearman ≥ 0.93; signs 100%; pilot ratios change < 10%).
+2. **Every classification holds within the pre-specified neighbourhood:**
+   - rs1198588 is brain-enriched at all 21 settings.
+   - rs2710323 is brain-depleted at all 21.
+   - The control is never brain-enriched by ratio.
+3. **rs2238057 is brain-leaning, not brain-specific.**
+   - Enriched with fold-change scores at windows 101–10001.
+   - With L2, peak or absolute-difference scoring the ratio drops to 0.94–1.11, though brain tracks still rank above the background median (percentile 0.58–0.70).
+   - At the extreme windows (1 bp, 11 bp, ≥ 100 kb) the enrichment disappears.
+4. **Ratio size depends on the window** (rs1198588: 2.32 → 6.32 from 101 to 2001 bp). The direction of the conclusion doesn't.
+5. **rs1198588's exact track ranking is the most window-sensitive** (Spearman 0.70 at 101 and 2001 bp vs 0.85–0.99 for the other SNPs). Report track *sets*, not one top track.
+6. **The percentile is steadier than the mean ratio** (rs1198588: 0.61–0.85 vs 1.29–6.97). This argues for a rank/percentile-based specificity statistic.
+7. **Absolute-difference scores shrink brain enrichment** because they up-weight tracks that are highly accessible at baseline. Fold change compares relative change per tissue, which is the right question for tissue comparisons.
+8. **128 bp bins keep set-level conclusions** but agree less on rankings (Spearman 0.40–0.93) and direction (63–92%). That is relevant for histone later.
+
+### Decision
+Keep the pre-specified 501 bp `DIFF_LOG2_SUM` score with pseudocount 1. Don't switch to 2001 bp because it gives larger ratios: that would be choosing the analysis after seeing the result. 2001 bp stays reserved for histone marks, as AlphaGenome recommends.
+
+### Follow-up (Nov 8): `phase2/sensitivity_followup.py`
+- **128 bp bins hold sums, not averages.** Over the same 512 bp, the bins add up to 0.88–0.98 of the summed 1 bp signal (median across 289–305 tracks per SNP). Averages would give 0.008. → For histone: sum the 128 bp bins over 2001 bp, pseudocount 1.
+- **Direction is stable wherever the effect is real.** For all 4 SNPs, the 100 most affected tracks keep their sign at 101, 501 and 2001 bp (100/100). All sign changes fall in tracks ranked below 100, with scores near zero; rs1198588 had the most (142/199 and 148/199 agree). That fully explains its 0.81 / 0.83 sign agreement in the summary.
+- **rs1198588's brain tracks:**
+  - The 10 largest (globus pallidus, putamen, pons, caudate, Ammon's horn, posterior cingulate, DLPFC, spinal cord, frontal cortex, spinal-cord astrocytes) are positive at all three windows.
+  - Sign changes occur only in tracks with |score| ≤ 0.02 (fetal brain, cerebellum, astrocyte cultures).
+  - Globus pallidus, putamen and pons are near full size already at 101 bp, while posterior cingulate and DLPFC are ≈0.05 at 101 bp and ≈0.33–0.35 at 501 bp. The effect sits at different distances from the variant in different regions.
+- **rs2238057:** all 12 brain tissues are positive at every window; astrocyte cultures are near zero.
+- **Why rs1198588's ratio grows at 2001 bp:** its brain scores *shrink* (putamen 0.51 → 0.42), but the background shrinks faster. Background effects are more confined to the variant, while the brain effect is spread wider. This doesn't change the decision to keep 501 bp.
+- Control rs72730413: strong but very local effects (posterior cingulate/DLPFC/caudate −0.38 to −0.42 at 101 bp, ≈ −0.05 at 2001 bp).
+
+### Status
+✅ Score definition verified and documented; Session 1 naming error corrected.
+✅ Sensitivity analysis run; conclusions robust except rs2238057 (brain-leaning).
+✅ 128 bp units known (sums); sign changes confined to near-zero tracks.
+⬜ Optional: look at `profile_rs1198588.png` alongside the 101 bp vs 501 bp cortex pattern.
