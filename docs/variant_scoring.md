@@ -76,3 +76,96 @@ which is a sum of per-base log changes. Ours is `DIFF_LOG2_SUM`: the log of the 
 A conclusion is robust if it holds across the nearby settings: windows 101 to 2001,
 pseudocounts 0.1 to 10, and the three sum-based aggregations. It doesn't have to hold
 at extremes like the 1 bp window or the whole input.
+
+---
+
+## D3 results: how much does the scoring choice matter? (run Nov 2026)
+
+`phase2/scoring_sensitivity.py`, DNase, 305 real tracks (16 brain, 255 background).
+Full table: `results/sensitivity/sensitivity_summary.tsv`. Figure: `sensitivity_windows.png`.
+
+### Checks passed
+
+- Re-implementation vs `run_ism_pilot.compute_variant_effect`: max |diff| 2.6–3.7 × 10⁻⁷.
+  The only difference is float64 vs float32 arithmetic.
+- Today's model run vs the committed score files: max |diff| 4.9–5.0 × 10⁻⁷. That is the
+  6-decimal rounding of the files. **The October scores are reproducible from the
+  weights today.**
+- Library scorer: *skipped*. The installed `alphagenome-pytorch` has no
+  `variant_scoring` module. The equivalence to `DIFF_LOG2_SUM` therefore rests on
+  reading the 0.3.1 source code (above).
+- `diff_sum` and `diff_mean` agree in sign with our score on 100% of tracks for every
+  SNP, as they must: log2((A+1)/(R+1)) has the sign of A − R.
+
+### Brain ÷ background (ratio) and brain tracks' mean percentile within background (pct)
+
+| Setting | rs1198588 | rs2238057 | rs2710323 | control rs72730413 |
+|---|---|---|---|---|
+| **501 bp (ours)** | **4.62 / 0.72** | **1.73 / 0.73** | **0.27 / 0.23** | **0.57 / 0.40** |
+| window 101 | 2.32 / 0.72 | 1.33 / 0.69 | 0.32 / 0.23 | 0.54 / 0.33 |
+| window 2001 | 6.32 / 0.77 | 2.05 / 0.74 | 0.27 / 0.25 | 0.58 / 0.45 |
+| window 10001 | 4.86 / 0.81 | 1.87 / 0.79 | 0.35 / 0.33 | 0.54 / 0.45 |
+| window 1 | 2.63 / 0.65 | 0.85 / 0.48 | 0.24 / 0.20 | 0.95 / 0.62 |
+| whole input | 2.57 / 0.74 | 1.03 / 0.50 | 0.51 / 0.42 | 0.82 / 0.48 |
+| pseudocount 0.01–10 | 4.43–4.91 / 0.71–0.78 | 1.72–1.73 / 0.73 | 0.25–0.27 / 0.22–0.23 | 0.47–0.59 / 0.39–0.42 |
+| sum of logs | 3.17 / 0.81 | 1.31 / 0.71 | 0.19 / 0.22 | 0.36 / 0.45 |
+| difference of sums | 2.46 / 0.79 | 1.11 / 0.70 | 0.17 / 0.22 | 0.34 / 0.46 |
+| L2 of log1p | 2.72 / 0.84 | 0.94 / 0.58 | 0.27 / 0.21 | 0.49 / 0.45 |
+| log2 of max | 6.91 / 0.85 | 0.98 / 0.63 | 0.15 / 0.19 | 0.53 / 0.40 |
+| 501 bp at 128 bp bins | 5.54 / 0.81 | 1.65 / 0.74 | 0.22 / 0.17 | 0.52 / 0.33 |
+| **range, all 21 settings** | **1.29–6.97 / 0.61–0.85** | **0.85–2.05 / 0.46–0.79** | **0.15–0.51 / 0.17–0.42** | **0.34–0.95 / 0.33–0.62** |
+
+### Conclusions
+
+1. **The pseudocount does not matter.** From 0.01 to 10, track rankings barely move
+   (Spearman ≥ 0.93 for all four SNPs), signs agree on 100% of tracks, and the
+   brain ratio changes by less than 10% for the three pilots (control: 0.47–0.59).
+   Only 100 starts to compress scores.
+2. **Every SNP's classification survives the reasonable settings.** Here "reasonable"
+   means windows 101–10001, pseudocount 0.1–10 and the sum-based aggregations:
+   - **rs1198588** is brain-enriched at **all 21 settings**, including the extremes
+     (ratio ≥ 1.29, percentile ≥ 0.61).
+   - **rs2710323** is brain-depleted (immune-dominated) at all 21 (ratio ≤ 0.51, percentile ≤ 0.42).
+   - The **control** is never brain-enriched by ratio (≤ 0.95). By percentile it is
+     ≤ 0.48 everywhere except the 1 bp and 11 bp windows.
+3. **rs2238057 is the fragile one.** It is enriched across windows 101–10001 and the
+   fold-change scores (ratio 1.31–2.05, percentile 0.69–0.79). With L2, peak-only or
+   absolute-difference scoring the ratio falls to 0.94–1.11, though its brain tracks
+   still rank above the background median (percentile 0.58–0.70). At the extreme
+   windows (1, 11 bp; ≥ 100 kb) the enrichment disappears (ratio 0.85–1.06,
+   percentile 0.46–0.50). Call it brain-leaning, not brain-specific.
+4. **The size of the ratio depends on the window; the direction of the conclusion does
+   not.** For rs1198588 the ratio runs from 2.32 (101 bp) to 6.32 (2001 bp). Report
+   the 501 bp value with this range, and don't compare ratios across window choices.
+5. **Exact track rankings are window-dependent for rs1198588.** Its Spearman with 501 bp
+   is 0.70 at both 101 and 2001 bp, versus 0.85–0.99 for the other SNPs. Its effect has
+   spatial structure beyond the 501 bp element (see `profile_rs1198588.png`). Report
+   **sets** of tracks (e.g. "adult basal ganglia and cortex"), not a single top track.
+6. **The percentile is more stable than the ratio.** Across all 21 settings
+   rs1198588's percentile stays between 0.61 and 0.85, while its ratio varies more than
+   5-fold (1.29–6.97). rs2710323's percentile never rises above 0.42. A mean ratio is pulled by a few large tracks;
+   a percentile is not. **This favours a rank/percentile-based specificity statistic.**
+7. **Absolute-change scoring down-weights brain.** Difference of sums and difference of
+   means shrink brain enrichment (rs1198588 2.46, rs2238057 1.11). Absolute change grows
+   with a track's baseline accessibility, so tracks that are highly open at the locus
+   dominate. Fold change (ours) asks about relative change in each tissue, which is the
+   right question for comparing tissues.
+8. **128 bp resolution keeps the set-level conclusions** (rs1198588 5.54 / 6.97;
+   rs2238057 1.65 / 2.03), but track rankings agree less (Spearman 0.40–0.93) and
+   directions less often (63–92% of tracks). Histone ChIP (128 bp only) is usable for
+   tissue-set questions. Track-level direction claims from it need care.
+
+### Decision
+
+**Keep the pre-specified 501 bp DIFF_LOG2_SUM score with pseudocount 1.** It is
+AlphaGenome's recommended scorer, and the conclusions hold around it. The 2001 bp window
+gives larger brain ratios. Switching to it because of that would mean choosing the
+analysis after seeing the result. 2001 bp stays reserved for histone marks, as
+AlphaGenome recommends.
+
+### Still open
+
+- How 128 bp bins relate to 1 bp values (sums or means): the `units` line in
+  `sensitivity.log.txt`.
+- Whether the tracks that change sign between windows are small-effect tracks:
+  `phase2/sensitivity_followup.py`.
