@@ -42,7 +42,7 @@ def cache_path(chrom, start, end):
 def load_ism(argv):
     sys.argv = argv                       # run_ism_pilot reads sys.argv when imported
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    import run_ism_pilot
+    import phase1.run_ism_pilot as run_ism_pilot
     return run_ism_pilot
 
 
