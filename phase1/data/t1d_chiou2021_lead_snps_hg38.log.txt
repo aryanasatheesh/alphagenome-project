@@ -1,0 +1,17 @@
+select_leads.py  2026-11-17T14:02:32
+input   : t1d_chiou2021/GCST90014023_buildGRCh38.tsv.gz  (md5 16f0fc3e802c9848f265a3e535bbfc97)
+trait   : T1D
+columns : {'chr': 'chromosome', 'pos': 'base_pair_location', 'ea': 'effect_allele', 'oa': 'other_allele', 'eff': 'beta', 'p': 'p_value', 'rsid': 'variant_id', 'freq': 'effect_allele_frequency'}
+rules   : p < 5e-08; SNVs only; freq in [0.01, 0.99] (applied); autosomes only; MHC chr6:24999772-34032223 excluded; greedy clumping, 1,000,000 bp
+  rows read                  62,116,689
+  malformed (skipped)        0
+  p < threshold              46,732
+  not single-base A/C/G/T    3,130
+  frequency outside range    3,069
+  not autosomal              0
+  in MHC                     33,601
+  candidates after filters   6,932
+  independent leads          79  (a1 is risk-raising for 33; protective for 46)
+output  : t1d_chiou2021/t1d_chiou2021_lead_snps_hg38.tsv
+sample  : 20 leads, seed 2026 -> t1d_chiou2021/t1d_chiou2021_control20_hg38.tsv
+          rs10751776, rs1493696, rs3024493, rs55893453, rs12464462, rs4490209, rs777029891, rs9385401, rs1947178, rs61839660, rs11066320, rs238265, rs1350275, rs55993634, rs9891059, rs61759532, rs35327136, rs1808094, rs34536443, rs601338
