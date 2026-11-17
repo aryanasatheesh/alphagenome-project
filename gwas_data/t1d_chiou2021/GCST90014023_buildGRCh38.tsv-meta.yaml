@@ -1,0 +1,100 @@
+# Study meta-data
+gwas_id: GCST90014023
+author_notes: README.txt
+gwas_catalog_api: https://www.ebi.ac.uk/gwas/rest/api/studies/GCST90014023
+date_metadata_last_modified: 2025-01-14
+
+# Trait Information
+trait_description:
+  - Type 1 diabetes
+ontology_mapping:
+  - ''
+
+# Genotyping Information
+genome_assembly: GRCh38
+genotyping_technology:
+  - Genome-wide genotyping array
+  - Targeted genotyping array
+
+# Sample Information
+samples:
+  - sample_ancestry_category:
+      - European
+    sample_size: 1682
+  - sample_ancestry_category:
+      - European
+    sample_size: 1288
+  - sample_ancestry_category:
+      - European
+    sample_size: 1317
+  - sample_ancestry_category:
+      - European
+    sample_size: 2853
+  - sample_ancestry_category:
+      - European
+    sample_ancestry:
+      - Irish
+    sample_size: 455
+  - sample_ancestry_category:
+      - European
+    sample_ancestry:
+      - British
+    sample_size: 5415
+  - sample_ancestry_category:
+      - European
+    sample_size: 115043
+  - sample_ancestry_category:
+      - European
+    sample_size: 2494
+  - sample_ancestry_category:
+      - European
+    sample_ancestry:
+      - British
+    sample_size: 1242
+  - sample_ancestry_category:
+      - European
+    sample_size: 2694
+  - sample_ancestry_category:
+      - European
+    sample_size: 4275
+  - sample_ancestry_category:
+      - European
+    sample_size: 158
+  - sample_ancestry_category:
+      - European
+    sample_ancestry:
+      - Irish
+    sample_size: 2317
+  - sample_ancestry_category:
+      - European
+    sample_size: 363495
+  - sample_ancestry_category:
+      - European
+    sample_size: 3955
+  - sample_ancestry_category:
+      - European
+    sample_size: 1361
+  - sample_ancestry_category:
+      - European
+    sample_size: 1918
+  - sample_ancestry_category:
+      - European
+    sample_size: 90
+  - sample_ancestry_category:
+      - European
+    sample_size: 1857
+  - sample_ancestry_category:
+      - European
+    sample_size: 2663
+  - sample_ancestry_category:
+      - European
+    sample_size: 4008
+
+# Summary Statistic information
+data_file_name: GCST90014023_buildGRCh38.tsv
+file_type: pre-GWAS-SSF
+data_file_md5sum: ea8d72e8261f10d70e62242c9dc8ae3c
+
+# Harmonization status
+is_harmonised: false
+is_sorted: false

@@ -1,0 +1,2 @@
+b04f5abb146cab3678aa371d3e8dfc2c GCST90014023_buildGRCh38.tsv-meta.yaml
+ea8d72e8261f10d70e62242c9dc8ae3c GCST90014023_buildGRCh38.tsv
