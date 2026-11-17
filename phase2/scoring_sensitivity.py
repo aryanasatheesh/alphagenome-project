@@ -324,7 +324,7 @@ def main():
     sys.argv = sys.argv[:1]                       # run_ism_pilot reads sys.argv when imported
     sys.path.insert(0, str(REPO))
     import torch
-    import phase1.run_ism_pilot as ism
+    import run_ism_pilot as ism
     from alphagenome_pytorch import AlphaGenome
     try:
         from alphagenome_pytorch.variant_scoring.aggregations import compute_aggregation, create_center_mask
