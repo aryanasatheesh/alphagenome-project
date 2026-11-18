@@ -37,7 +37,8 @@ Usage
       --out phase1/data/t1d_chiou2021_lead_snps.tsv \\
       --sample 20 --seed 2026 --sample-out phase1/data/t1d_chiou2021_control20.tsv
 
-  # 3. Check the rules reproduce an existing lead list (e.g. the 173 SCZ leads)
+  # 3. Check the rules reproduce an existing lead list (e.g. the 173 SCZ leads;
+  #    verified 2026-11-16: 173/173 on PGC3 european, with and without --freq-col FCON)
   python3 phase1/select_leads.py --gwas <PGC3 file> ... --compare phase1/data/scz_pgc3_lead_snps.tsv
 """
 import argparse
@@ -156,7 +157,7 @@ def main():
     g.add_argument("--or-col", help="odds ratio; converted to beta = ln(OR)")
     ap.add_argument("--p-col")
     ap.add_argument("--p-is-neglog10", action="store_true", help="--p-col holds -log10(p)")
-    ap.add_argument("--rsid-col", help="variant ID; non-rs IDs are replaced by chr:pos:a1:a2")
+    ap.add_argument("--rsid-col", help="variant ID, kept as written; missing IDs become chr:pos:a1:a2")
     ap.add_argument("--freq-col", help="effect-allele frequency (optional)")
     ap.add_argument("--p-thresh", type=float, default=5e-8)
     ap.add_argument("--min-freq", type=float, default=0.01,
@@ -236,8 +237,10 @@ def main():
         if chrom == mhc_chr and mhc_lo <= pos <= mhc_hi:
             counts["in MHC"] += 1
             continue
-        rid = r[ci["rsid"]] if "rsid" in ci else ""
-        if not re.fullmatch(r"rs\d+", rid or ""):
+        # Keep the file's own ID (rsID or e.g. PGC3's "8:4180090_T_A"), so leads match
+        # the original lead files; make one up only if the ID is missing.
+        rid = r[ci["rsid"]].strip() if "rsid" in ci else ""
+        if rid in ("", ".", "NA"):
             rid = f"{chrom}:{pos}:{ea}:{oa}"
         cands.append({"rsid": rid, "chr": chrom, "pos": pos, "a1": ea, "a2": oa,
                       "beta": beta, "p": p, "freq": freq})

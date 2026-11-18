@@ -137,6 +137,11 @@ OVERRIDES = {
                                   "olfactory region"]},
     **{n: "embryonic_extraembryonic" for n in ["chorion", "amnion", "placental epithelial cell",
                                                "placental basal plate", "amniotic epithelial cell", "egg chorion"]},
+    # Whole prenatal limbs (DNase tracks 301-304; UBERON:8300001-8300004 have no organ-system
+    # anchor). Mixed embryonic tissue (muscle, bone, skin, vessels), so grouped with the other
+    # embryonic samples rather than one organ system. Decision: Aryana, 2026-11-17.
+    **{n: "embryonic_extraembryonic" for n in ["right forelimb", "left forelimb",
+                                               "right hindlimb", "left hindlimb"]},
     "epithelial cell of umbilical artery": "vascular",
     "parathyroid adenoma": "endocrine",
     **{n: "stromal_connective_adipose" for n in [
