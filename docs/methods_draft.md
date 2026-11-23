@@ -116,8 +116,84 @@ First, **the output heads are zero-padded to round tensor dimensions.** The ATAC
  
 Second, **assigning tissue labels by substring matching on biosample names is error-prone** and was rejected in favor of a manually curated mapping. Naive matching produced false positives including "gastrocnemius medialis" and "gastroesophageal sphincter" (matching "astro"), and several renal samples described as "renal cortex" or "renal cortical" (matching "cortex"). Peripheral nerve samples such as sciatic and tibial nerve, which are not central nervous system tissue, were likewise excluded. The final classification was constructed by reading the complete set of biosample names present in each output head and assigning central nervous system, eye, and other categories by exact match.
  
-Under this classification, central nervous system coverage differs markedly across output heads: 1 of 167 real ATAC tracks, 23 of 305 DNase tracks, 70 of 1,116 histone ChIP tracks, and 35 of 733 RNA-seq tracks. The ATAC head therefore provides essentially no basis for brain-specific inference in the pretrained model, and analyses of tissue specificity rely on the DNase and histone ChIP outputs. This limitation also motivates the fine-tuning component of the project, since fine-tuning on cell-type-resolved fetal brain ATAC-seq would supply precisely the coverage the pretrained ATAC head lacks.
+The final classification was built from ontology terms rather than names. Every biosample was placed under the Uberon (2026-10-01) and Cell Ontology (2026-06-08) hierarchies. Every candidate central or peripheral nervous system, eye, or neural cell-type sample then required a reviewed entry in a curation table, and the build stopped if any candidate was unreviewed.
  
+Stem-cell-derived neural cells, retina, peripheral nervous system tissue, brain vasculature and tumour cell lines were separated from brain. Brain tissue and primary cells in the DNase-seq head number 16 tracks: 2 prenatal, 10 postnatal and 4 of unknown stage. The ATAC-seq head contains no brain tissue tracks; its only neural track is iPSC-derived motor neurons. The ATAC head therefore provides no basis for brain-specific inference in the pretrained model, and brain-specific analyses use DNase-seq. This limitation also motivates the fine-tuning component of the project.
+
 Verification that metadata row order corresponds to output channel order was performed by inspecting the model implementation and the structure of the metadata file. Padding entries appear contiguously at the end of each head with real tracks preceding them in order, and the count of padding channels matches the count of output channels with no predicted signal variance at a test locus (79 for DNase), confirming that real tracks are indexed 0 through N−1 as recorded.
+
+### 8. Tissue categories
+ 
+To compare tissues rather than "brain versus everything else", every output track was assigned to one of 22 organ-system categories. Examples are central nervous system, immune/blood, liver, heart, digestive and vascular, plus categories for stem-cell-derived and embryonic samples. Assignments came from the system-level ancestors of each track's Uberon or Cell Ontology term, with reviewed overrides for terms that lack an organ-system ancestor. For example, the four prenatal limb samples were grouped with other embryonic samples, because whole embryonic limbs are mixed tissue.
+ 
+Brain tracks were taken unchanged from the curated labels in Section 7. Blood vessels and pericytes located in the brain were assigned to the vascular category, because location in the brain does not make a cell neural.
+ 
+Cell lines received a category but were excluded from the main comparison. Tumour and transformed lines can differ substantially from their tissue of origin, and they are unevenly distributed across assays: 92 of the 167 ATAC-seq tracks are lymphoblastoid cell lines from individual 1000 Genomes donors. The DNase-seq comparison therefore used 198 tracks (tissues, primary cells and stem-cell-derived cells) in 19 categories with at least two tracks each.
+ 
+Within each category, track-level values were averaged first, and categories were then weighted equally. Without this step, a summary over "all other tracks" is dominated by whichever tissue contributes the most tracks.
+ 
+### 9. Control GWAS for normalisation
+ 
+#### 9.1 Choice of control trait and dataset
+ 
+Variant effect scores from different tracks are not on a common scale (Section 10). Following our advisor's recommendation, we first normalised against the effects of variants associated with a control trait. The control trait was type 1 diabetes (T1D), chosen as a disease whose genetic mechanism is not expected to act through the brain. Its variants' effects in brain tracks should therefore represent ordinary variant effects there.
+ 
+We used the T1D GWAS of Chiou et al. (2021, Nature; GWAS Catalog GCST90014023): 18,942 cases and 501,638 controls of European ancestry from nine cohorts, imputed to the TOPMed reference panel. It was chosen because:
+ 
+- it is genome-wide (the larger Robertson et al. 2021 study is based on a targeted immune genotyping array)
+- it is of European ancestry, like the PGC3 summary statistics
+- it has the most cases of the genome-wide T1D GWASs available
+- its full summary statistics are public
+The summary statistics (MD5 checksum of the uncompressed file matching the GWAS Catalog's) are on GRCh38. This was verified with the same test used for PGC3 (Section 1.4): rs2007044 is reported at chr12:2,235,794, its GRCh38 position.
+ 
+#### 9.2 Lead selection
+ 
+T1D lead variants were selected with the same rules as the schizophrenia leads, using a general implementation that reads any summary-statistics file through a column map:
+ 
+- p < 5 × 10⁻⁸
+- single-nucleotide variants with A/C/G/T alleles
+- autosomes only
+- exclusion of the extended MHC
+- greedy 1 Mb clumping
+Before use, the implementation was required to reproduce the 173 PGC3 schizophrenia leads exactly. It did.
+ 
+Because the T1D file is on GRCh38, the MHC boundaries used for PGC3 (chr6:25,000,000–34,000,000, GRCh37) were converted with the same chain file used for liftover (Section 4), giving chr6:24,999,772–34,032,223. Variants with effect-allele frequency below 1% were also excluded. This removes the rare, large-effect variants reported in the T1D study and keeps the control variants comparable to the common schizophrenia leads. Applied to PGC3, the same frequency filter removes no schizophrenia lead.
+ 
+Of 62,116,689 variants, 46,732 were genome-wide significant. 3,130 were not single-nucleotide variants, 3,069 were below 1% frequency and 33,601 fell in the MHC. Clumping the remaining 6,932 yielded 79 independent T1D leads. A random sample of 20 (fixed seed) was scored for this analysis with the same in silico mutagenesis procedure and software version as the schizophrenia variants (Section 6). No liftover was needed. All 20 hg38 reference bases matched one of the two reported alleles, and three variants were palindromic.
+ 
+### 10. Normalisation of variant effects across tracks
+ 
+#### 10.1 Rationale
+ 
+AlphaGenome's variant effect scores are designed to compare variants within a track. Our question compares tracks (tissues) for one variant, and raw scores are not comparable across tracks. Each track derives from a different experiment, with its own sequencing depth, dynamic range and noise. The pseudocount in the score also compresses effects more in tracks with low baseline signal. AlphaGenome's own documentation notes that scores from different tracks are on different scales, and it addresses this by expressing each score relative to a large set of common variants, separately for each track.
+ 
+We therefore normalised every score within its own track against a reference set of variants scored with the same model and code.
+ 
+#### 10.2 Control-GWAS ratio
+ 
+For each DNase-seq track t, the denominator D_t was the mean absolute variant effect score of the reference (T1D) variants in that track. Each schizophrenia variant's normalised score was its risk-oriented score divided by D_t. The risk-oriented score is the variant effect score with its sign set so that positive values mean the risk allele increases accessibility (Section 5).
+ 
+The magnitude of the normalised score expresses the effect relative to a typical control-trait variant in that track (1 = equal). Its sign gives the direction.
+ 
+For each variant and tissue category we computed three quantities:
+ 
+- **effect size:** the mean magnitude across the category's tracks
+- **effect direction:** the mean signed value
+- **concordance:** the fraction of the category's tracks sharing the majority sign
+Concordance distinguishes a consistent direction from a mixture of opposing effects. Brain specificity was the central nervous system's effect size minus the mean effect size of the 13 non-neural body categories.
+ 
+Uncertainty from the small reference set was estimated by bootstrap: the reference variants were resampled with replacement 1,000 times and the denominators and summaries recomputed. Tracks whose denominator fell in the lowest 5% were flagged, because small denominators inflate ratios. All analyses were repeated with these tracks removed.
+ 
+As a negative check, ten randomly chosen schizophrenia GWAS variants without association (p > 0.5) were normalised the same way.
+ 
+#### 10.3 Reliability of the denominator
+ 
+For a denominator to correct for track-specific scale, it should reflect a property of the track rather than of the particular reference variants. This was tested in three ways:
+ 
+1. **Split-half reliability.** We split the reference variants into random halves (500 splits) and compared the two halves' denominators across tracks (Spearman correlation). The reliability of the full set was estimated with the Spearman–Brown formula.
+2. **Agreement between reference sets.** We compared denominators computed from the T1D variants with those computed from the ten non-associated schizophrenia variants.
+3. **Leave-one-out sensitivity.** We recomputed all summaries with each reference variant left out in turn.
+[Results of these checks: see lab notebook Session 17; to be written as a Results section.]
+
  
 ---

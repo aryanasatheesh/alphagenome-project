@@ -1333,3 +1333,268 @@ Keep the pre-specified 501 bp `DIFF_LOG2_SUM` score with pseudocount 1. Don't sw
 ✅ Sensitivity analysis run; conclusions robust except rs2238057 (brain-leaning).
 ✅ 128 bp units known (sums); sign changes confined to near-zero tracks.
 ⬜ Optional: look at `profile_rs1198588.png` alongside the 101 bp vs 501 bp cortex pattern.
+
+---
+
+## Session 16 (E1) — November 9–17, 2026
+**Goal:** Act on Choo's Nov 9 feedback:
+- normalise scores before comparing tracks, starting with a control GWAS (type 1 diabetes)
+- report effect size **and** effect direction per tissue
+- group tracks by organ system, averaging within a category before comparing categories
+
+Preliminary results by the next meeting use only the 10 pilots: the 173-lead run needs a GPU.
+
+### Nov 9 meeting with Choo: decisions
+- **Raw scores can't be compared between tracks** (AlphaGenome itself normalises against common variants per track).
+- **Two normalisations discussed:**
+  - **SNP-by-SNP matching** (more rigorous): 1–5 control SNPs per SCZ SNP, matched on allele frequency in a European reference and on distance to the nearest gene. Each SCZ score is divided by the mean of its controls' scores in the same track.
+  - **Control GWAS** (simpler, recommended starting point): divide SCZ effects by the summed or averaged effects of a control trait's variants in each track.
+  - **Plan:** start with the control GWAS, upgrade to matching later.
+- **Outputs per SNP:** effect size and effect direction per tissue. A variant can have large effects in many tissues but in opposite directions.
+- **Grouping:** organ-system categories replace "brain vs everything else". Flat averages are skewed by over-represented tissues: ATAC is 92/167 LCL tracks.
+
+### State of the repo before this session
+- The Nov 9 scripts were written but never committed: `annotate_snps.py`, `assign_tissue_categories.py`, `tissue_profiles.py`. They were found on the Mac Nov 17 and committed (`f3f76c6`).
+- `run_ism_pilot.py` was briefly moved into `phase1/` and back (`31e68ff`, `6bfcf04`); it is byte-identical to the October version.
+- The Hoffman2 Slurm migration deleted the July conda env from scratch.
+  - New env: `/u/project/cluo/aryasath/.conda_envs/alphagenome_env` (alphagenome-pytorch 0.3.1, torch 2.15.0, numpy 2.5.4).
+  - GPU: only an old P4 card was granted (unsupported), so all model runs this week were on the Mac.
+
+### Choosing the control GWAS
+**Trait (Choo):** type 1 diabetes. The intent is a trait with no expected brain mechanism, so its variants' effects in brain tracks represent "ordinary" variant effects there.
+
+**Study:** Chiou et al. 2021, *Nature* 594:398–402, GWAS Catalog **GCST90014023**.
+- 18,942 cases / 501,638 controls, European, 9 cohorts (incl. UK Biobank, FinnGen, T1DGC), TOPMed-imputed.
+- **Why this one:**
+  - genome-wide (Robertson 2021 is larger but ImmunoChip-based, so dense only in immune regions)
+  - European, like our PGC3 file
+  - the most cases of the genome-wide T1D GWASs found (Crouch 2021 preprint 15,573; Forgetta 2020 9,358)
+  - full summary statistics are public
+- **Known caveat from the start:** T1D risk variants are enriched in T-cell regulatory DNA (and acinar, ductal and beta cells), so the denominator might be larger in immune tracks.
+
+### `phase1/select_leads.py`: lead selection for any GWAS
+- **Same rules as `get_lead_snps_pgc3.py`:**
+  - p < 5×10⁻⁸
+  - single-base A/C/G/T alleles
+  - autosomes
+  - MHC excluded
+  - greedy 1 Mb clumping
+- **Additions:**
+  - a column map, so any GWAS file works
+  - an optional frequency filter (≥1%)
+  - a seeded random sample
+  - a log (input md5, count per filter, seed)
+- **Gate before use:** on the PGC3 file (md5 `6ebe2376f5cda972d37efa0f214c4df0`) it reproduced the **173 leads exactly**, with and without the frequency filter (FCON). So the filter removes no SCZ lead, and applying it to T1D keeps the two traits on the same rules.
+  - The only apparent mismatch was ID formatting of the one lead without an rsID (`8:4180090_T_A`). The script now keeps the file's own IDs.
+
+### T1D download and build check
+- **Download:** downloaded on the Hoffman2 data-transfer node (`dtn.hoffman2.idre.ucla.edu`; 5 GB, too slow for home internet). Stored outside the repo at `/u/project/cluo/aryasath/gwas_data/t1d_chiou2021/`. Uncompressed md5 `ea8d72e8261f10d70e62242c9dc8ae3c` = the GWAS Catalog's.
+- **The deposited file is GRCh38, not hg19.** The paper describes its own analysis as hg19, but rs2007044 is at chr12:**2,235,794** (hg38; hg19 is 2,344,960), matching the file name and yaml.
+- **Consequences:**
+  - MHC limits were lifted with our chain file (`hg19ToHg38.over.chain.gz`, pyliftover) from hg19 chr6:25,000,000–34,000,000 to **hg38 chr6:24,999,772–34,032,223**, so both traits exclude the same region.
+  - The T1D leads skip `liftover_to_hg38.py`.
+  - `run_ism_pilot.py` checks every hg38 base against A1/A2, which also confirms the build.
+
+### T1D lead selection (Hoffman2 CPU node)
+
+| Filter | Count |
+|---|---|
+| rows | 62,116,689 |
+| p < 5×10⁻⁸ | 46,732 |
+| not single-base A/C/G/T | 3,130 |
+| frequency < 1% (incl. the paper's rare large-effect variants) | 3,069 |
+| in MHC (hg38 limits) | 33,601 (72% of significant SNPs) |
+| candidates | 6,932 |
+| **independent leads** | **79** (A1 risk-raising 33, protective 46) |
+
+- **Random 20 for the preliminary run (seed 2026):** rs10751776, rs1493696, rs3024493, rs55893453, rs12464462, rs4490209, rs777029891, rs9385401, rs1947178, rs61839660, rs11066320, rs238265, rs1350275, rs55993634, rs9891059, rs61759532, rs35327136, rs1808094, rs34536443, rs601338.
+- **Files:**
+  - `phase1/data/t1d_chiou2021_lead_snps_hg38.tsv`
+  - `t1d_chiou2021_control20_hg38.tsv`
+  - `t1d_chiou2021_lead_snps_hg38.log.txt`
+
+### ISM on the 20 T1D SNPs (Mac, same script and version as the pilots)
+- 20/20 scored, 12,800 track scores (`results/ism/t1d_control20_ism_scores.tsv`).
+- hg38 reference = A2 (the non-effect allele) at all 20, as expected for GWAS-SSF files.
+- 3 palindromic SNPs: rs4490209, rs55993634, rs34536443.
+
+### Tissue categories: `phase2/assign_tissue_categories.py`
+- **Moved from `phase1/` to `phase2/`.** From `phase1/` it crashed (`No module named 'build_track_classes'`).
+- **Method:** ontology system ancestors (Uberon 2026-10-01, CL 2026-06-08) plus reviewed overrides; reuses the D1 neural groups.
+- **Result:** 5,563 real tracks → 22 categories (`phase2/metadata/track_categories.tsv`).
+  - DNase: 198 main-analysis tracks (tissue, primary cell, stem-cell-derived) + 107 cell lines. ATAC: 62 + 105.
+  - CNS = the 16 reviewed brain DNase tracks (2 prenatal).
+  - Brain vasculature and pericytes → vascular.
+  - Cell lines get a category but are excluded from the main comparison.
+- **Decision (Aryana, Nov 17):** the 4 prenatal limb DNase tracks (301–304) → `embryonic_extraembryonic`. Whole embryonic limbs are mixed tissue; the Uberon limb terms have no organ-system anchor. DNase now has no unassigned tissue tracks.
+- **Gap vs the D1 rule:** the script reports unassigned samples instead of stopping. Read the "other" list every run.
+
+### Control-GWAS normalisation: `phase2/tissue_profiles.py --method ratio`
+- **Moved to `phase2/`.** The Nov 5 quantile method is kept (byte-identical output) and is still the default.
+- **Steps (DNase, 198 main-analysis tracks, padding dropped by label):**
+  1. **Denominator per track:** D_t = mean |score| of the 20 T1D SNPs in track t.
+  2. **Normalised score:** n(i, t) = risk-oriented score(i, t) ÷ D_t.
+     - |n| = 1 means "as large as a typical T1D lead in this track"
+     - sign: + = the SCZ risk allele opens chromatin
+  3. **Per SNP × category** (categories with ≥2 tracks, weighted equally):
+     - size = mean |n|
+     - direction = mean signed n
+     - concordance = share of tracks with the majority sign
+  4. **Summary:**
+     - brain size (CNS)
+     - body mean (13 non-neural body categories)
+     - top body category (≥3 tracks)
+     - specificity = brain − body mean
+     - class at size 1 (brain-specific / shared / other-tissue / none)
+- **Guards:**
+  - 1,000 bootstrap resamples of the 20 T1D SNPs (95% intervals for brain size and specificity)
+  - tracks with D_t in the bottom 5% flagged; second run with them dropped (`results/profiles/drop_low_denominator/`)
+  - palindromic SNPs' direction labelled strand-assumed
+- **Built-in null check:** the 10 random non-significant SCZ SNPs (October controls) go through the same normalisation.
+- **Tested before use** with the random SNPs as a stand-in denominator. The figures were rendered and fixed: capped colour scale, log axes for ratios, per-panel close-up scales.
+
+### Status
+✅ Control GWAS chosen, verified (md5, build) and selected with the SCZ rules (gate passed).
+✅ 20 T1D SNPs scored; tissue categories built; ratio normalisation run (all tracks and low-denominator tracks dropped).
+➡️ Results and evaluation: Session 17.
+
+---
+
+## Session 17 (E2) — November 17, 2026: what the control-GWAS normalisation shows
+**Goal:** Read the T1D-normalised profiles of the 10 pilots and decide whether control-GWAS normalisation should carry the pipeline forward.
+
+All numbers: DNase, commit `5ca2b7c`, outputs in `results/profiles/`. n = 10 pilots, 20 T1D SNPs, 10 random SCZ SNPs: **descriptive, not a test.**
+
+### Figures: what each shows
+1. **`dnase_ratio_heatmap.png`**
+   - **Layout:** one row per pilot (most brain-specific at top); one column per tissue category, neural categories first (white rule after CNS and after the neural block).
+   - **Colour:** the category's direction (mean signed ratio; blue = risk allele opens, orange = closes), capped at ±4.2 (95th percentile).
+   - **Number in each cell:** size (mean |ratio|).
+   - **Reads:**
+     - rs1198588 is the only row whose CNS cell is strongly blue while body cells are pale, and its two neighbouring neural cells (neural stem-cell-derived 4.2, retina 4.5) are strongly **orange**
+     - rs2238057's largest cell is heart (3.9), not CNS (1.5)
+     - rs2710323's row is orange almost everywhere, with immune 17.6 the largest value in the figure
+     - rows 4–9 are pale (≤ ~2.8 anywhere)
+2. **`dnase_ratio_slope.png`**
+   - **Layout:** one line per pilot from the body mean (left) to brain (right), log scale, dashed line at 1. Lines are coloured when brain ≥ 1.5× the body mean (blue) or ≤ 1/1.5 (orange).
+   - **Reads:** **1 pilot higher in brain (rs1198588: 0.67 → 3.65), 3 lower** (rs2710323 5.79 → 2.51, rs12129573 and rs13107325 1.34 → ~0.5). The other six change little.
+   - *Fix to make:* the title is clipped at the right edge.
+3. **`dnase_ratio_scatter.png`**
+   - **Layout:** brain size (y) against the strongest non-neural body category (x), log–log, lines at 1 and the brain = body diagonal. Pilots coloured by class; the 10 random SCZ SNPs as triangles.
+   - **Reads:**
+     - rs1198588 is the only point well above the diagonal
+     - **the triangles sit among the pilots**, and two of them are above 1 in brain
+   - This is the key figure for calibration (below).
+4. **`dnase_ratio_closeups.png`**
+   - **Layout:** every track's signed ratio, grouped by category, for the 4 most and 4 least brain-specific pilots (own y-scale per panel; bar = category mean).
+   - **Reads:**
+     - rs1198588's brain values are a spread, not one population: globus pallidus +10.3, pons +9.1, putamen +7.4, Ammon's horn +6.0, caudate +5.6, with a few CNS tracks near 0 (fetal brain, cerebellum, astrocyte cultures, as in D2/D3)
+     - its neural-progenitor and RPE tracks are uniformly negative (−4.8 to −6.1)
+     - rs11191580 is negative in almost every track of every category
+     - rs2710323's immune tracks reach about −35
+5. **`dnase_ratio_denominators.png`**
+   - **Layout:** each track's T1D denominator D_t (log scale) by category, median bar, dashed line = median of all tracks, flagged bottom-5% tracks orange.
+   - **Reads:**
+     - immune tracks sit as a tight cluster at the top (median 1.57× all tracks)
+     - CNS is slightly above the median (1.14×; 1 flagged track)
+     - liver, vascular and PNS are lowest
+     - the spread within categories is about 3-fold
+
+The `drop_low_denominator/` copies are the same figures without the 10 flagged tracks.
+
+### Results (all tracks; 95% bootstrap interval)
+
+| SNP (gene) | Brain size | Body mean | Top body category | Brain − body | Brain direction (concordance) | Class |
+|---|---|---|---|---|---|---|
+| rs1198588 (ENSG00000297419; nearest coding gene DPYD) | **3.65** [2.33, 7.08] | 0.67 | embryonic 1.29 | **+2.97** [1.80, 6.05] | +3.60 (0.94), palindromic | shared |
+| rs2238057 (CACNA1C) | 1.53 [0.99, 3.02] | 1.05 | **heart 3.92** | +0.48 [0.03, 1.64] | +1.44 (0.81) | shared |
+| rs11191580 (NT5C2) | 1.50 [1.04, 2.80] | 1.30 | liver 1.98 | +0.19 [−0.14, 0.97] | −1.50 (1.00) | shared |
+| rs2710323 (ITIH1) | 2.51 [1.71, 5.06] | 5.79 | **immune 17.61** | −3.28 [−6.32, −2.36] | −1.59 (0.62) | shared |
+| rs4702 (FURIN) | 0.62 | 0.69 | stromal 1.93 | −0.07 | +0.59 (0.88) | other-tissue |
+| rs4129585 (TSNARE1) | 0.72 | 1.01 | kidney 1.67 | −0.30 | −0.70 (0.94) | other-tissue |
+| rs12129573 | 0.51 | 1.34 | heart 2.77 | −0.83 | −0.36 (0.56) | other-tissue |
+| rs13107325 (SLC39A8) | 0.48 | 1.34 | liver 2.81 | −0.86 | −0.23 (0.56) | other-tissue |
+| rs58120505 | 0.29 | 0.20 | stromal 0.35 | +0.09 | +0.29 (1.00) | none |
+| rs778371 (SNORC) | 0.17 | 0.24 | lung 0.52 | −0.07 | +0.12 (0.69) | none |
+
+- **Low-denominator tracks dropped** (188 tracks): every pilot keeps its class.
+  - rs1198588: brain 3.85, specificity +3.20 [1.96, 6.48]
+  - rs2238057's brain advantage shrinks to +0.09 [−0.22, 0.65]
+- **Random SCZ SNPs, same normalisation:**
+  - brain size median 0.58 (range 0.04–1.40) vs pilots 0.67
+  - 2 of 10 above 1 in brain (rs62225795 1.40, rs72730413 1.19)
+  - highest specificity +0.31
+  - pilots above the highest random specificity: rs1198588 (+2.97) and, narrowly, rs2238057 (+0.48)
+
+### What the results say about the pilots
+1. **rs1198588 is the one robust brain-leaning signal.**
+   - Brain sits 2.97 above the body mean, with an interval far from 0, in both runs.
+   - It is strongest in adult basal ganglia, pons and hippocampus, and **opposite in sign** in stem-cell-derived neural progenitors and RPE. This is the D2/D3 pattern, now normalised.
+   - "Brain-specific" is too strong: the neural-lineage cells respond as strongly, just in the other direction. "Adult-brain-leaning, with a developmental/neural-lineage sign flip" is the accurate description.
+   - Direction assumes the + strand (palindromic).
+2. **rs2238057 (CACNA1C) is not brain-specific.** Heart (3.9) and skeletal muscle (2.3) exceed brain (1.5), all in the same direction. Its brain advantage over the body mean disappears when low-denominator tracks are dropped. This is the third downgrade (D3: brain-leaning; now shared with muscle).
+3. **rs11191580 (NT5C2)** closes chromatin in essentially every tissue (brain concordance 1.00): broad, not brain-specific.
+4. **rs2710323 (ITIH1)** remains the strongest non-brain signal: immune −17.6, all immune tracks agreeing. This is despite the T1D denominator being *largest* in immune tracks, so the immune signal is, if anything, understated.
+5. The other six pilots are small everywhere.
+
+### What it tells us about control-GWAS normalisation
+**Assumption being tested:** T1D variants have no special brain effects, so dividing by them puts every track on a common "ordinary-variant" scale. Four checks:
+
+1. **Brain was not inflated by T1D.** CNS denominators are 1.14× the median track. But the denominator must be neutral in **every** category we compare brain against, not just in brain, because specificity is brain minus the body mean. T1D's are not: immune 1.57×, kidney 1.34×, liver 0.69× and vascular 0.73× the median track. This tilts the body side of every comparison.
+2. **The denominators are not stable properties of the tracks** (checked Nov 17 on the committed data):
+   - **Split-half reliability:** dividing the 20 T1D SNPs into random halves of 10 (500 splits), the two halves rank the tracks' denominators with median Spearman 0.36. The full 20-SNP set is about 0.53 (Spearman–Brown). The 10 random SNPs give a similar 0.54.
+   - **The two reference sets disagree:** T1D and random-SNP denominators correlate at **−0.18** across tracks. A denominator that measured each track's own scale would agree between any two reasonable reference sets.
+   - **A few SNPs dominate:** one T1D SNP (rs10751776) is the largest contributor in 50 of 198 tracks, and in **28 of 31 immune tracks**, where it supplies a median 39% of the sum. The immune excess is largely one variant's biology.
+   - **The reference changes brain scaling:** with random SNPs as the reference, CNS denominators were *small* (0.72× the median) and rs1198588's brain size was 5.84. With T1D they are slightly large (1.14×) and it is 3.65. Same SNP, same scores: a 1.6-fold change from the choice of 10–20 reference SNPs.
+   - **How many SNPs would be needed:** extrapolating the split-half figure, ~75 control SNPs give reliability ~0.8 and ~170 give ~0.9.
+3. **Rankings, though, are robust.** Leaving each T1D SNP out in turn (20 runs) moves no pilot's class:
+   - rs1198588's specificity stays +2.84 to +3.89
+   - rs2710323's −4.01 to −3.13
+   - rs2238057's +0.40 to +0.89
+
+   The SNPs that stood out on raw scores (D2) stand out here. Normalisation changes sizes and thresholds, not who is at the extremes.
+4. **The threshold has no null meaning.** "Size > 1 = bigger than a typical T1D lead" doesn't separate pilots from random non-significant SNPs (medians 0.67 vs 0.58; random SNPs reach 1.40). A T1D lead is not much larger than a random variant in most tracks, so "1" is an arbitrary yardstick, not a calibrated cut-off. Classes based on it (4 "shared" pilots) shouldn't be reported as findings.
+
+**Summary:** with 20 SNPs, the control-GWAS denominator ranks SNPs consistently, but it measures "which tissues these 20 T1D variants happen to act in" more than "how loud each track is". It also carries the control trait's own tissue biology into every body comparison. Its numbers (sizes, classes) are therefore not interpretable on their own.
+
+### Decision (proposed, to discuss with Choo): move to matched control SNPs now
+**Recommendation:** switch the main reference to matched non-associated SNPs now. Keep the T1D run as a documented comparison, and keep the control-GWAS option in the pipeline.
+
+**Why now rather than later:**
+1. **Reliability needs more control SNPs anyway.** A stable denominator needs ~75–170 control variants. The full 79-lead T1D set would just reach the low end. Once that many variants must be scored, there's no compute saving left in using a control trait, and matched SNPs cost the same.
+2. **Matched SNPs remove the control-trait bias.** Non-associated variants have no shared tissue biology. A control trait always has some (T1D: immune, pancreas), and the general pipeline would need a "neutral" trait for every disease, which doesn't exist.
+3. **Matching gives the threshold a meaning.** A matched null answers "is this SNP's effect in brain larger than that of comparable non-associated variants?" and allows real per-category tests at the 173-lead scale. "Bigger than a typical T1D lead" can't.
+4. **It's cheap at pilot scale and needs almost no new analysis code.** 10 pilots × 5 controls = 50 SNPs, about one Mac run. `tissue_profiles.py --method ratio --reference matched` works unchanged; only a selection script is new.
+
+**What the control-GWAS step still gave us:** the normalisation code, outputs and figures; the general lead selector (reproduces the PGC3 leads exactly); the tissue categories; the evidence that rankings are robust to the denominator; and the reliability numbers that size the matched set.
+
+### Proposed matching logic (Choo's spec: European allele frequency + distance to nearest gene)
+1. **Candidate pool:** the PGC3 European file itself, which carries the European control allele frequency (FCON) for every variant on the same build as the leads. Keep variants that are:
+   - not associated: PVAL > 0.5
+   - single-base, autosomal
+   - MAF ≥ 0.01
+   - outside the MHC
+   - more than 1 Mb from every one of the 173 leads, so they're not in LD with a lead
+   - well imputed: IMPINFO ≥ 0.9
+2. **Distance to nearest gene:** distance from each variant to the nearest protein-coding gene TSS, computed locally from a GENCODE GRCh37 annotation (millions of variants is too many for the Ensembl REST calls `annotate_snps.py` makes). Leads and candidates use the same annotation and build.
+3. **Matching per lead:**
+   - folded MAF within ±0.02, and log10(distance + 1) within ±0.1 (about ±25%)
+   - if fewer than k candidates qualify, widen both tolerances step by step and record the widening
+   - draw **k = 5** at random (fixed seed), without replacement across leads
+   - require matched controls to be >1 Mb from each other, so they're independent
+   - record each lead's matched set (`lead_rsid` column) and its match quality (ΔMAF, Δlog-distance)
+4. **Check match quality before any model run:** compare the lead and matched distributions of MAF and distance (summary table + QQ plot). They should overlap; if not, tighten the match.
+5. **Score:** liftover → ISM (same script) → `score_tracks.py` with a `matched` set.
+6. **Normalise two ways:**
+   - **Main: pooled matched denominator.** All matched controls of all leads form one reference set per track (`--reference matched`). With 5 per lead that's 50 SNPs for the pilots (reliability ≈ 0.75) and 865 for the 173 leads (≈ 0.98).
+   - **Sensitivity: Choo's per-SNP ratio.** Each lead's score ÷ the mean |score| of its own 5 controls. This needs a small new option. Five SNPs give reliability ≈ 0.26, so per-SNP ratios will be noisy and should be read alongside the pooled version.
+7. **Tests at 173-lead scale:** leads vs their matched controls per tissue category (paired by matched set; permutation or Wilcoxon, corrected across categories).
+
+**Pilot-scale cost now:** 50 SNPs on the Mac. **Full scale (later, GPU):** 173 + 865 SNPs.
+
+### Status
+✅ T1D-normalised pilot profiles; robustness (bootstrap, leave-one-out, low-denominator drop); reliability of the denominator measured.
+✅ Conclusion: rankings robust (rs1198588 adult-brain-leaning; rs2710323 immune; rs2238057 shared with muscle); sizes and classes not interpretable with a 20-SNP control-trait denominator.
+⬜ Choo's decision on moving to matched controls now.
+⬜ If yes: `phase1/select_matched_controls.py` → match-quality check → ISM on 50 matched SNPs → pooled + per-SNP ratio.
+⬜ Fix the clipped slope-plot title.
