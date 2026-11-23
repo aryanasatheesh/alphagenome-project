@@ -491,7 +491,7 @@ def plots(summ, prof_rows, dir_rows, categories, size, signed, use, track_cat, a
     n_up = sum(is_up(r) for r in d)
     n_dn = sum(is_down(r) for r in d)
     crit = f"brain ≥ {fold:g}× body mean, or ≤ 1/{fold:g}×" if ratio else "by > 0.1"
-    ax.set_title(f"{args.sets[0]} SNPs: {n_up} higher in brain, {n_dn} lower ({crit})",
+    ax.set_title(f"{args.sets[0]} SNPs: {n_up} higher in brain, {n_dn} lower\n({crit})",
                  loc="left", fontsize=9, color=INK)
     fig.text(0.01, 0.005, ref_note, fontsize=5.5, color=INK2)
     fig.tight_layout(rect=(0, 0.02, 1, 1))

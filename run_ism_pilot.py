@@ -48,28 +48,47 @@ Input (TSV with header; produced by the selection scripts + liftover_to_hg38.py)
 Output
     results/ism/<out_name>
         one row per SNP x modality x track (padding channels included;
-        downstream analysis must drop them)
+        downstream analysis must drop them). Besides the scores, each row has
+        ref_window_sum / alt_window_sum: the predicted signal summed over the
+        scoring window for the hg38 reference and alternate sequence, BEFORE the
+        +1 pseudocount. variant_effect_score = log2((alt_window_sum + 1) /
+        (ref_window_sum + 1)). The sums show how accessible the element is in
+        each track (a large fold change in closed chromatin looks different
+        from one at an open element) and let the score be recomputed with any
+        pseudocount without rerunning the model. (Added Nov 23, 2026; older
+        score files lack these two columns.)
     results/ism/<out_name stem>.variants.tsv
         one row per input SNP: alleles, hg38 assignment, risk allele, and
         whether it was scored or skipped (with the reason)
+    results/ism/<out_name stem>.run.json
+        what produced the scores: weights file and its md5, package versions,
+        device, window sizes, input file, start/end time, git commit. Score
+        files from different weights must never be compared or pooled
+        unknowingly; this file is how to tell.
 
 Usage
-    PYTORCH_ENABLE_MPS_FALLBACK=1 python run_ism_pilot.py [input_tsv] [out_name]
+    PYTORCH_ENABLE_MPS_FALLBACK=1 python run_ism_pilot.py [input_tsv] [out_name] [--weights PATH]
     defaults: phase1/data/scz_pgc3_pilot_10snps_hg38.tsv  pilot_ism_scores.tsv
+              --weights ~/alphagenome-weights/model_fold_0.safetensors
+    (fold 0 stays the default until it has been compared with the recommended
+    all-folds weights on the SNPs already scored; see the Nov 23 notebook entry)
 
 Exit status
     0 if every SNP was scored, 1 if any were skipped (scores for the rest are
     still written, so a long run is not lost to one bad SNP).
 
 Requires
-    alphagenome-pytorch, weights at ~/alphagenome-weights/model_fold_0.safetensors,
-    internet access (Ensembl REST API)
+    alphagenome-pytorch, weights (default ~/alphagenome-weights/model_fold_0.safetensors),
+    internet access (Ensembl REST API) unless run through ism_with_cache.py
 """
 
+import argparse
 import csv
+import hashlib
 import json
 import math
 import os
+import subprocess
 import sys
 import time
 import urllib.request
@@ -80,10 +99,27 @@ import torch
 from alphagenome_pytorch import AlphaGenome
 
 # === Configuration ===
-INPUT_FILE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    'phase1', 'data', 'scz_pgc3_pilot_10snps_hg38.tsv')
-OUT_NAME = sys.argv[2] if len(sys.argv) > 2 else 'pilot_ism_scores.tsv'
-WEIGHTS_PATH = os.path.expanduser('~/alphagenome-weights/model_fold_0.safetensors')
+DEFAULT_WEIGHTS = '~/alphagenome-weights/model_fold_0.safetensors'
+
+
+def _parse_cli(argv):
+    """Same positional arguments as before (input, output name), plus --weights.
+
+    Parsed at import because ism_with_cache.py sets sys.argv and then imports
+    this module."""
+    p = argparse.ArgumentParser(description='ISM of GWAS SNPs with AlphaGenome.')
+    p.add_argument('input', nargs='?',
+                   default=os.path.join('phase1', 'data', 'scz_pgc3_pilot_10snps_hg38.tsv'))
+    p.add_argument('out_name', nargs='?', default='pilot_ism_scores.tsv')
+    p.add_argument('--weights', default=DEFAULT_WEIGHTS,
+                   help=f'AlphaGenome .safetensors weights (default {DEFAULT_WEIGHTS})')
+    return p.parse_args(argv)
+
+
+_ARGS = _parse_cli(sys.argv[1:])
+INPUT_FILE = _ARGS.input
+OUT_NAME = _ARGS.out_name
+WEIGHTS_PATH = os.path.expanduser(_ARGS.weights)
 OUTPUT_DIR = os.path.join('results', 'ism')
 SEQ_LEN = 131_072          # AlphaGenome input length
 MASK_WINDOW = 501           # bp around variant for scoring (recommended for chromatin)
@@ -97,7 +133,8 @@ REQUIRED_COLUMNS = ['rsid', 'chr', 'pos', 'a1', 'a2', 'beta']
 SCORE_FIELDS = ['rsid', 'chr', 'pos', 'a1', 'a2', 'beta',
                 'hg38_ref', 'hg38_alt', 'hg38_ref_is', 'palindromic',
                 'modality', 'track_index',
-                'variant_effect_score', 'risk_oriented_score']
+                'variant_effect_score', 'risk_oriented_score',
+                'ref_window_sum', 'alt_window_sum']
 
 
 def fetch_hg38_sequence(chrom, start, end):
@@ -170,6 +207,73 @@ def compute_variant_effect(ref_pred, alt_pred, center_pos, mask_window=MASK_WIND
     return scores
 
 
+def window_sums(ref_pred, alt_pred, center_pos, mask_window=MASK_WINDOW):
+    """Predicted signal summed over the scoring window, per track, for REF and ALT.
+
+    Same window and arithmetic as compute_variant_effect, but WITHOUT the +1
+    pseudocount, so compute_variant_effect(...) == log2((alt + 1) / (ref + 1)).
+    compute_variant_effect is left untouched so that scores stay byte-identical
+    to the October-November runs.
+
+    Returns:
+        (ref_sums, alt_sums): numpy arrays [n_tracks]
+    """
+    half = mask_window // 2
+    start = max(0, center_pos - half)
+    end = min(ref_pred.shape[1], center_pos + half + 1)
+    ref_sums = ref_pred[0, start:end, :].cpu().numpy().sum(axis=0)
+    alt_sums = alt_pred[0, start:end, :].cpu().numpy().sum(axis=0)
+    return ref_sums, alt_sums
+
+
+def file_md5(path, chunk=1 << 22):
+    h = hashlib.md5()
+    with open(path, 'rb') as f:
+        for b in iter(lambda: f.read(chunk), b''):
+            h.update(b)
+    return h.hexdigest()
+
+
+def run_info(device):
+    """What produced these scores (written to <out stem>.run.json)."""
+    def version(mod):
+        try:
+            from importlib.metadata import version as v
+            return v(mod)
+        except Exception:
+            return 'unknown'
+    try:
+        commit = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], capture_output=True,
+                                text=True, timeout=10).stdout.strip() or 'unknown'
+        dirty = subprocess.run(['git', 'status', '--porcelain', '--', 'run_ism_pilot.py'],
+                               capture_output=True, text=True, timeout=10).stdout.strip() != ''
+    except Exception:
+        commit, dirty = 'unknown', False
+    return {
+        'script': 'run_ism_pilot.py',
+        'git_commit': commit + (' (run_ism_pilot.py modified)' if dirty else ''),
+        'weights_file': WEIGHTS_PATH,
+        'weights_name': os.path.basename(WEIGHTS_PATH),
+        'weights_md5': file_md5(WEIGHTS_PATH),
+        'weights_bytes': os.path.getsize(WEIGHTS_PATH),
+        'alphagenome_pytorch': version('alphagenome-pytorch'),
+        'torch': torch.__version__,
+        'numpy': np.__version__,
+        'device': device,
+        'seq_len': SEQ_LEN,
+        'mask_window': MASK_WINDOW,
+        'pseudocount': 1,
+        'modalities': MODALITIES,
+        'input_file': INPUT_FILE,
+    }
+
+
+def fmt_sum(x):
+    """Window sums: 9 significant digits, enough to write a float32 value exactly,
+    so the score can be recomputed from the sums to within its own 6-decimal rounding."""
+    return f'{x + 0.0:.9g}'
+
+
 def parse_beta(raw):
     """Return beta as a finite float, or None if missing/non-numeric/non-finite."""
     try:
@@ -234,14 +338,18 @@ def main():
     device = 'mps' if torch.backends.mps.is_available() else (
         'cuda' if torch.cuda.is_available() else 'cpu')
     print(f'Device: {device}')
+    if not os.path.exists(WEIGHTS_PATH):
+        sys.exit(f'Weights file not found: {WEIGHTS_PATH}')
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     scores_out = os.path.join(OUTPUT_DIR, OUT_NAME)
     variants_out = os.path.join(OUTPUT_DIR, os.path.splitext(OUT_NAME)[0] + '.variants.tsv')
+    runinfo_out = os.path.join(OUTPUT_DIR, os.path.splitext(OUT_NAME)[0] + '.run.json')
 
     # --- Load SNPs and check columns BEFORE loading the model ---
     print(f'INPUT : {INPUT_FILE}')
     print(f'OUTPUT: {scores_out}')
     print(f'        {variants_out}')
+    print(f'        {runinfo_out}')
     with open(INPUT_FILE, newline='') as f:
         reader = csv.DictReader(f, delimiter='\t')
         in_fields = list(reader.fieldnames or [])
@@ -264,6 +372,9 @@ def main():
                        'risk_allele', 'status', 'note'])
 
     # --- Load model ---
+    info = run_info(device)
+    info['started'] = time.strftime('%Y-%m-%dT%H:%M:%S')
+    print(f"Weights: {info['weights_name']}  md5 {info['weights_md5']}")
     print(f'Loading AlphaGenome from {WEIGHTS_PATH}...')
     model = AlphaGenome.from_pretrained(WEIGHTS_PATH, device=device)
     model.eval()
@@ -338,6 +449,7 @@ def main():
             alt_pred = alt_out[modality][RESOLUTION]
             n_tracks = ref_pred.shape[-1]
             scores = compute_variant_effect(ref_pred, alt_pred, center)
+            ref_sums, alt_sums = window_sums(ref_pred, alt_pred, center)
 
             print(f'  {modality.upper()} ({n_tracks} channels incl. padding): '
                   f'max |score| = {np.max(np.abs(scores)):.4f} '
@@ -355,6 +467,8 @@ def main():
                     'variant_effect_score': fmt_score(s),
                     'risk_oriented_score': ('' if a['orientation'] is None
                                             else fmt_score(a['orientation'] * s)),
+                    'ref_window_sum': fmt_sum(float(ref_sums[t])),
+                    'alt_window_sum': fmt_sum(float(alt_sums[t])),
                 })
 
         variant_rows.append({**vrow, 'hg38_ref': hg38_ref, 'hg38_alt': hg38_alt,
@@ -379,6 +493,12 @@ def main():
         writer = csv.DictWriter(f, fieldnames=variant_fields, delimiter='\t', lineterminator='\n')
         writer.writeheader()
         writer.writerows(variant_rows)
+    info['finished'] = time.strftime('%Y-%m-%dT%H:%M:%S')
+    info['n_input_snps'] = len(snps)
+    info['n_scored'] = sum(v['status'] == 'scored' for v in variant_rows)
+    with open(runinfo_out, 'w') as f:
+        json.dump(info, f, indent=2)
+        f.write('\n')
 
     scored = [v for v in variant_rows if v['status'] == 'scored']
     skipped = [v for v in variant_rows if v['status'] == 'skipped']

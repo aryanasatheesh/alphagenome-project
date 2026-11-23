@@ -21,7 +21,8 @@ Cache
 
 Usage (repo root, alphagenome_env active)
     python ism_with_cache.py prefetch phase1/data/scz_pgc3_lead_snps_hg38.tsv [more files]
-    python ism_with_cache.py run phase1/data/lead_chunks/leads_01.tsv leads_01_ism_scores.tsv
+    python ism_with_cache.py run phase1/data/lead_chunks/leads_01.tsv leads_01_ism_scores.tsv [--weights PATH]
+    (anything after the output name is passed on to run_ism_pilot.py)
 """
 
 import csv
@@ -78,9 +79,9 @@ def main():
         return 0
 
     # mode == "run"
-    if len(args) != 2:
-        sys.exit("usage: python ism_with_cache.py run SNP_FILE OUT_NAME")
-    ism = load_ism(["run_ism_pilot.py", args[0], args[1]])
+    if len(args) < 2:
+        sys.exit("usage: python ism_with_cache.py run SNP_FILE OUT_NAME [--weights PATH]")
+    ism = load_ism(["run_ism_pilot.py", *args])
     from_network = ism.fetch_hg38_sequence
     stats = {"cache": 0, "network": 0}
 
