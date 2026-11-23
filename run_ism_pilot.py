@@ -69,16 +69,17 @@ Output
 Usage
     PYTORCH_ENABLE_MPS_FALLBACK=1 python run_ism_pilot.py [input_tsv] [out_name] [--weights PATH]
     defaults: phase1/data/scz_pgc3_pilot_10snps_hg38.tsv  pilot_ism_scores.tsv
-              --weights ~/alphagenome-weights/model_fold_0.safetensors
-    (fold 0 stays the default until it has been compared with the recommended
-    all-folds weights on the SNPs already scored; see the Nov 23 notebook entry)
+              --weights ~/alphagenome-weights/model_all_folds.safetensors
+    (all-folds has been the default since Nov 23, after comparison with fold 0
+    on the 40 SNPs already scored; results before that used fold 0 and are
+    labelled so. See the Nov 23 notebook entry.)
 
 Exit status
     0 if every SNP was scored, 1 if any were skipped (scores for the rest are
     still written, so a long run is not lost to one bad SNP).
 
 Requires
-    alphagenome-pytorch, weights (default ~/alphagenome-weights/model_fold_0.safetensors),
+    alphagenome-pytorch, weights (default ~/alphagenome-weights/model_all_folds.safetensors),
     internet access (Ensembl REST API) unless run through ism_with_cache.py
 """
 
@@ -99,7 +100,7 @@ import torch
 from alphagenome_pytorch import AlphaGenome
 
 # === Configuration ===
-DEFAULT_WEIGHTS = '~/alphagenome-weights/model_fold_0.safetensors'
+DEFAULT_WEIGHTS = '~/alphagenome-weights/model_all_folds.safetensors'
 
 
 def _parse_cli(argv):
