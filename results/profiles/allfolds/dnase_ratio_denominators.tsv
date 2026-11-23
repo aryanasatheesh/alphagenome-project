@@ -1,0 +1,199 @@
+track_index	tissue_category	biosample_name	denominator	low_flag	used
+0	neural_stem_cell_derived	neuronal stem cell	0.049027	False	True
+1	immune_blood	T-cell	0.104671	False	True
+2	stem_cell_derived_other	endothelial cell	0.048617	False	True
+3	CNS	astrocyte	0.101006	False	True
+4	stem_cell_derived_other	mesenchymal stem cell	0.057815	False	True
+5	stem_cell_derived_other	adipocyte	0.041087	False	True
+6	stem_cell_derived_other	chondrocyte	0.034456	False	True
+7	stem_cell_derived_other	hepatocyte	0.037743	False	True
+8	stem_cell_derived_other	myocyte	0.133139	False	True
+9	skeletal_muscle	skeletal muscle cell	0.106250	False	True
+10	stem_cell_derived_other	endodermal cell	0.073400	False	True
+11	immune_blood	B cell	0.113190	False	True
+12	skin	keratinocyte	0.057008	False	True
+13	embryonic_extraembryonic	trophoblast cell	0.069508	False	True
+14	skeletal_muscle	skeletal muscle myoblast	0.121437	False	True
+15	immune_blood	T-helper 1 cell	0.108331	False	True
+16	immune_blood	T-helper 2 cell	0.128661	False	True
+17	immune_blood	natural killer cell	0.072258	False	True
+18	immune_blood	CD4-positive, alpha-beta T cell	0.108869	False	True
+19	immune_blood	CD8-positive, alpha-beta T cell	0.108487	False	True
+20	stromal_connective_adipose	hepatic stellate cell	0.032283	False	True
+21	kidney_urinary	glomerular visceral epithelial cell	0.076373	False	True
+22	neural_stem_cell_derived	glutamatergic neuron	0.063207	False	True
+23	CNS_non_neural	choroid plexus epithelial cell	0.097379	False	True
+24	heart	cardiac muscle cell	0.098894	False	True
+25	immune_blood	memory B cell	0.066762	False	True
+26	immune_blood	naive B cell	0.125558	False	True
+27	immune_blood	CD4-positive, CD25-positive, alpha-beta regulatory T cell	0.120353	False	True
+28	immune_blood	immature natural killer cell	0.130253	False	True
+29	stem_cell_derived_other	hematopoietic multipotent progenitor cell	0.151418	False	True
+30	immune_blood	suppressor macrophage	0.087433	False	True
+31	immune_blood	inflammatory macrophage	0.090974	False	True
+32	immune_blood	naive thymus-derived CD4-positive, alpha-beta T cell	0.089893	False	True
+33	immune_blood	CD4-positive, alpha-beta memory T cell	0.123976	False	True
+34	immune_blood	T-helper 17 cell	0.080385	False	True
+35	immune_blood	naive thymus-derived CD8-positive, alpha-beta T cell	0.100653	False	True
+36	immune_blood	central memory CD4-positive, alpha-beta T cell	0.120152	False	True
+37	immune_blood	effector memory CD4-positive, alpha-beta T cell	0.106163	False	True
+38	immune_blood	central memory CD8-positive, alpha-beta T cell	0.073475	False	True
+39	immune_blood	CD8-positive, alpha-beta memory T cell	0.110676	False	True
+40	immune_blood	effector memory CD8-positive, alpha-beta T cell	0.092041	False	True
+41	immune_blood	T-helper 22 cell	0.114832	False	True
+42	immune_blood	effector CD4-positive, alpha-beta T cell	0.090404	False	True
+43	immune_blood	CD14-positive monocyte	0.085537	False	True
+44	immune_blood	common myeloid progenitor, CD34-positive	0.211041	False	True
+45	immune_blood	T follicular helper cell	0.111215	False	True
+46	immune_blood	T-helper 9 cell	0.094760	False	True
+47	reproductive_breast	epithelial cell of prostate	0.057504	False	True
+48	digestive	epithelial cell of esophagus	0.068546	False	True
+49	eye_anterior	non-pigmented ciliary epithelial cell	0.093017	False	True
+50	kidney_urinary	epithelial cell of proximal tubule	0.113761	False	True
+51	reproductive_breast	mammary epithelial cell	0.067209	False	True
+52	lung_airway	bronchial epithelial cell	0.076418	False	True
+53	stem_cell_derived_other	progenitor cell of endocrine pancreas	0.035698	False	True
+54	stem_cell_derived_other	myotube	0.104045	False	True
+55	kidney_urinary	kidney epithelial cell	0.107002	False	True
+56	embryonic_extraembryonic	amniotic epithelial cell	0.132197	False	True
+57	stromal_connective_adipose	fibroblast of the aortic adventitia	0.075255	False	True
+58	stromal_connective_adipose	cardiac fibroblast	0.084796	False	True
+59	stromal_connective_adipose	fibroblast of the conjunctiva	0.047224	False	True
+60	stromal_connective_adipose	fibroblast of dermis	0.074130	False	True
+61	stromal_connective_adipose	fibroblast of gingiva	0.041979	False	True
+62	stromal_connective_adipose	fibroblast of lung	0.117697	False	True
+63	stromal_connective_adipose	fibroblast of mammary gland	0.101180	False	True
+64	stromal_connective_adipose	fibroblast of pulmonary artery	0.093583	False	True
+65	stromal_connective_adipose	fibroblast of villous mesenchyme	0.064385	False	True
+66	eye_anterior	iris pigment epithelial cell	0.085365	False	True
+67	kidney_urinary	renal cortical epithelial cell	0.128019	False	True
+68	eye_retina	retinal pigment epithelial cell	0.099018	False	True
+69	vascular	smooth muscle cell of the brain vasculature	0.062819	False	True
+70	CNS	astrocyte of the cerebellum	0.084033	False	True
+71	CNS	astrocyte of the hippocampus	0.073355	False	True
+72	CNS	astrocyte of the spinal cord	0.082182	False	True
+73	vascular	endothelial cell of umbilical vein	0.055352	False	True
+74	stromal_connective_adipose	stromal cell of bone marrow	0.086545	False	True
+75	PNS_neural_crest	neural crest cell	0.036217	False	True
+76	stem_cell_derived_other	mesothelial cell of epicardium	0.028575	True	True
+77	neural_stem_cell_derived	neural progenitor cell	0.069503	False	True
+78	stromal_connective_adipose	fibroblast of upper back skin	0.110826	False	True
+79	stromal_connective_adipose	fibroblast of skin of back	0.085770	False	True
+80	kidney_urinary	kidney tubule cell	0.109747	False	True
+81	vascular	kidney capillary endothelial cell	0.051207	False	True
+82	vascular	pulmonary artery endothelial cell	0.044082	False	True
+83	skin	foreskin keratinocyte	0.079360	False	True
+84	stromal_connective_adipose	foreskin fibroblast	0.071368	False	True
+85	skin	epidermal melanocyte	0.022720	True	True
+86	vascular	dermis blood vessel endothelial cell	0.082722	False	True
+87	stromal_connective_adipose	fibroblast of skin of abdomen	0.088258	False	True
+88	vascular	lung microvascular endothelial cell	0.072224	False	True
+89	stromal_connective_adipose	fibroblast of peridontal ligament	0.058260	False	True
+90	vascular	dermis microvascular lymphatic vessel endothelial cell	0.076928	False	True
+91	vascular	brain pericyte	0.050750	False	True
+92	vascular	brain microvascular endothelial cell	0.085861	False	True
+93	skin	foreskin melanocyte	0.040750	False	True
+201	neural_stem_cell_derived	ecto neural progenitor cell	0.045844	False	True
+202	heart	Right ventricle myocardium inferior	0.049919	False	True
+203	heart	Right ventricle myocardium superior	0.055386	False	True
+204	heart	left ventricle myocardium inferior	0.056749	False	True
+205	heart	left ventricle myocardium superior	0.061567	False	True
+206	stem_cell_derived_other	nephron progenitor cell	0.075634	False	True
+207	stromal_connective_adipose	fibroblast of skin of left biceps	0.081494	False	True
+208	stromal_connective_adipose	fibroblast of skin of left quadriceps	0.078216	False	True
+209	stromal_connective_adipose	fibroblast of skin of right quadriceps	0.075849	False	True
+210	stromal_connective_adipose	fibroblast of skin of scalp	0.086456	False	True
+211	stromal_connective_adipose	fibroblast of skin of right biceps	0.102849	False	True
+212	stem_cell_derived_other	mesendoderm	0.092260	False	True
+213	stem_cell_derived_other	islet precursor cell	0.071978	False	True
+214	kidney_urinary	ureter	0.037731	False	True
+215	digestive	large intestine	0.055012	False	True
+216	digestive	colonic mucosa	0.041668	False	True
+217	reproductive_breast	testis	0.067973	False	True
+218	digestive	stomach	0.050756	False	True
+219	vascular	aorta	0.042010	False	True
+220	heart	heart	0.064130	False	True
+221	CNS	brain	0.082292	False	True
+222	eye_retina	retina	0.079767	False	True
+223	eye_retina	eye	0.090638	False	True
+224	stromal_connective_adipose	femur	0.065190	False	True
+225	CNS	pons	0.057351	False	True
+226	reproductive_breast	ovary	0.042928	False	True
+227	reproductive_breast	uterus	0.045936	False	True
+228	vascular	posterior vena cava	0.038857	False	True
+229	liver	right lobe of liver	0.041665	False	True
+230	liver	left lobe of liver	0.030724	True	True
+231	digestive	body of pancreas	0.058360	False	True
+232	digestive	transverse colon	0.079557	False	True
+233	digestive	sigmoid colon	0.043106	False	True
+234	immune_blood	Peyer\'s patch	0.085821	False	True
+235	kidney_urinary	renal pelvis	0.099605	False	True
+236	digestive	pancreas	0.044167	False	True
+237	PNS_neural_crest	sciatic nerve	0.039767	False	True
+238	PNS_neural_crest	tibial nerve	0.032156	False	True
+239	skeletal_muscle	muscle of leg	0.073554	False	True
+240	vascular	ascending aorta	0.039475	False	True
+241	skeletal_muscle	muscle of arm	0.058670	False	True
+242	vascular	thoracic aorta	0.039266	False	True
+243	vascular	coronary artery	0.030254	True	True
+244	digestive	tongue	0.068642	False	True
+245	skeletal_muscle	muscle of trunk	0.068366	False	True
+246	CNS	frontal cortex	0.042465	False	True
+247	CNS	putamen	0.076366	False	True
+248	CNS	globus pallidus	0.064860	False	True
+249	CNS	Ammon\'s horn	0.058391	False	True
+250	embryonic_extraembryonic	placenta	0.046340	False	True
+251	CNS	cerebellum	0.026055	True	True
+252	endocrine	thyroid gland	0.151287	False	True
+253	lung_airway	lung	0.057258	False	True
+254	heart	right cardiac atrium	0.059803	False	True
+255	heart	left cardiac atrium	0.057233	False	True
+256	heart	heart right ventricle	0.050106	False	True
+257	heart	heart left ventricle	0.049283	False	True
+258	heart	cardiac septum	0.038035	False	True
+259	immune_blood	spleen	0.071047	False	True
+260	liver	liver	0.051996	False	True
+261	digestive	small intestine	0.065693	False	True
+262	kidney_urinary	kidney	0.053777	False	True
+263	CNS	cerebellar cortex	0.041774	False	True
+264	lung_airway	right lung	0.060676	False	True
+265	lung_airway	left lung	0.060138	False	True
+266	lung_airway	upper lobe of right lung	0.046890	False	True
+267	lung_airway	lower lobe of right lung	0.061008	False	True
+268	CNS	spinal cord	0.067713	False	True
+269	skeletal_muscle	muscle of back	0.068128	False	True
+270	embryonic_extraembryonic	umbilical cord	0.042489	False	True
+271	reproductive_breast	prostate gland	0.042635	False	True
+272	endocrine	adrenal gland	0.053592	False	True
+273	immune_blood	thymus	0.129836	False	True
+274	CNS	head of caudate nucleus	0.074545	False	True
+275	CNS	posterior cingulate gyrus	0.061835	False	True
+276	embryonic_extraembryonic	chorion	0.030297	True	True
+277	skeletal_muscle	forelimb muscle	0.072702	False	True
+278	skeletal_muscle	hindlimb muscle	0.060410	False	True
+279	skin	lower leg skin	0.028802	True	True
+280	kidney_urinary	left kidney	0.098612	False	True
+281	kidney_urinary	right kidney	0.070721	False	True
+282	digestive	mucosa of descending colon	0.065069	False	True
+283	digestive	mucosa of gallbladder	0.038196	False	True
+284	kidney_urinary	renal cortex interstitium	0.092872	False	True
+285	heart	right atrium auricular region	0.030093	True	True
+286	vascular	tibial artery	0.038194	False	True
+287	reproductive_breast	breast epithelium	0.042083	False	True
+288	skeletal_muscle	psoas muscle	0.050989	False	True
+289	lung_airway	upper lobe of left lung	0.070815	False	True
+290	lung_airway	lower lobe of left lung	0.064337	False	True
+291	digestive	left colon	0.063395	False	True
+292	CNS	dorsolateral prefrontal cortex	0.061788	False	True
+293	stromal_connective_adipose	omental fat pad	0.029721	True	True
+294	skeletal_muscle	gastrocnemius medialis	0.048119	False	True
+295	stromal_connective_adipose	mesenteric fat pad	0.027847	True	True
+296	kidney_urinary	left renal pelvis	0.084416	False	True
+297	kidney_urinary	right renal pelvis	0.082154	False	True
+298	kidney_urinary	left renal cortex interstitium	0.085178	False	True
+299	kidney_urinary	right renal cortex interstitium	0.079825	False	True
+300	skin	suprapubic skin	0.034492	False	True
+301	embryonic_extraembryonic	right forelimb	0.040712	False	True
+302	embryonic_extraembryonic	left forelimb	0.034366	False	True
+303	embryonic_extraembryonic	right hindlimb	0.058147	False	True
+304	embryonic_extraembryonic	left hindlimb	0.050412	False	True

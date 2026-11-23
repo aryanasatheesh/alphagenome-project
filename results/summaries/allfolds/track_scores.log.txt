@@ -1,0 +1,6 @@
+date    : 2026-11-23T12:02:29
+labels  : phase2/metadata/track_classes.tsv  md5 ba877d78525529328f0c4838f163e678
+scores  : pilot      results/ism/pilot_allfolds_ism_scores.tsv  md5 28c4680d63935c6c4c37f88bd946027d  rows 6400  padding dropped 1680  real kept 4720  SNPs 10
+scores  : control    results/ism/control_allfolds_ism_scores.tsv  md5 dc288f6da7daefc496f0e0f0fdd09e03  rows 6400  padding dropped 1680  real kept 4720  SNPs 10
+scores  : t1d        results/ism/t1d_control20_allfolds_ism_scores.tsv  md5 0e2092e9b535fecd16b0f4bbbfcc9f56  rows 12800  padding dropped 3360  real kept 9440  SNPs 20
+long table rows: 18880

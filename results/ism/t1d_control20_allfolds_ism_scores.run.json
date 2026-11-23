@@ -1,0 +1,24 @@
+{
+  "script": "run_ism_pilot.py",
+  "git_commit": "ecd96da",
+  "weights_file": "/Users/aryana/alphagenome-weights/model_all_folds.safetensors",
+  "weights_name": "model_all_folds.safetensors",
+  "weights_md5": "f26622eb9042b251789b048119d6d4ab",
+  "weights_bytes": 920635044,
+  "alphagenome_pytorch": "0.3.1",
+  "torch": "2.13.0",
+  "numpy": "2.5.1",
+  "device": "mps",
+  "seq_len": 131072,
+  "mask_window": 501,
+  "pseudocount": 1,
+  "modalities": [
+    "atac",
+    "dnase"
+  ],
+  "input_file": "phase1/data/t1d_chiou2021_control20_hg38.tsv",
+  "started": "2026-11-23T11:49:49",
+  "finished": "2026-11-23T11:54:05",
+  "n_input_snps": 20,
+  "n_scored": 20
+}
