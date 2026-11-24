@@ -1,0 +1,13 @@
+add_matching_features.py  2026-11-24T14:02:56
+SNP file: phase1/data/t1d_chiou2021_lead_snps_hg38.tsv
+GTF: /Users/aryana/alphagenome-project/reference/gencode/gencode.v50.annotation.gtf.gz  (124,527,720 bytes, md5 2d273848c6068682fabea72fae4896a9)
+GTF description: ##description: evidence-based annotation of the human genome (GRCh38), version 50 (Ensembl 116)
+  ##provider: GENCODE
+  ##format: gtf
+  ##date: 2026-04-08
+Build check: 'GRCh38' found in the description
+Genes with gene_type protein_coding: 20,107; readthrough 665 (excluded); _PAR_Y copies dropped 0; used 19,442 on 25 chromosomes
+SNPs: 79
+pc_body_dist_bp: 63.3% inside a gene; quartiles 0 / 0 / 8,770; 90th pct 41,342
+|pc_tss_dist_bp| median 24,213
+Written: phase1/data/t1d_chiou2021_lead_snps_hg38.genes.tsv

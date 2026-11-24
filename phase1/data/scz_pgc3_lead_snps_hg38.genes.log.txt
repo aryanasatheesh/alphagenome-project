@@ -1,0 +1,22 @@
+add_matching_features.py  2026-11-24T14:00:17
+SNP file: phase1/data/scz_pgc3_lead_snps_hg38.tsv
+GTF: /Users/aryana/alphagenome-project/reference/gencode/gencode.v50.annotation.gtf.gz  (124,527,720 bytes, md5 2d273848c6068682fabea72fae4896a9)
+GTF description: ##description: evidence-based annotation of the human genome (GRCh38), version 50 (Ensembl 116)
+  ##provider: GENCODE
+  ##format: gtf
+  ##date: 2026-04-08
+Build check: 'GRCh38' found in the description
+Genes with gene_type protein_coding: 20,107; readthrough 665 (excluded); _PAR_Y copies dropped 0; used 19,442 on 25 chromosomes
+SNPs: 173
+pc_body_dist_bp: 65.9% inside a gene; quartiles 0 / 0 / 24,205; 90th pct 285,112
+|pc_tss_dist_bp| median 64,228
+Written: phase1/data/scz_pgc3_lead_snps_hg38.genes.tsv
+Cross-check against phase1/data/scz_pgc3_lead_snps_hg38.annotation.tsv (Ensembl REST, +/-500 kb window):
+  SNPs with an Ensembl nearest protein-coding gene: 164
+  same nearest-TSS gene: 160/164   same signed TSS distance: 160/164
+  inside a gene here, and that gene is in Ensembl's overlapping_genes: 114/114
+  differences (4):
+  rs61937595: Ensembl ENSG00000258830 -7311  | GTF STAC3 37978
+  rs3791710: Ensembl ERBB4 -1113943  | GTF LANCL1 947671
+  rs9454727: Ensembl LMBRD1 -573739  | GTF COL19A1 -572931
+  rs6549963: Ensembl RBMS3 1428496  | GTF TGFBR2 -603191
