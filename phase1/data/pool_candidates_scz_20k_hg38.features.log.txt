@@ -1,0 +1,102 @@
+add_eur_maf.py  2026-11-24T22:35:50
+SNP file: phase1/data/pool_candidates_scz_20k_hg38.genes.tsv  (19982 SNPs)
+Panel: /u/project/cluo/chliu/Reference/BB1000Genomes/1kGP_high_coverage_Illumina.{chr}.filtered.SNV_INDEL_SV_phased_panel.vcf.gz
+Tool: bcftools 1.21
+  1kGP_high_coverage_Illumina.chr1.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (2,390,515,911 bytes, modified 2022-04-25): 1466 SNPs
+  1kGP_high_coverage_Illumina.chr2.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (2,506,332,497 bytes, modified 2022-04-25): 1643 SNPs
+  1kGP_high_coverage_Illumina.chr3.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (2,097,106,049 bytes, modified 2022-04-25): 1365 SNPs
+  1kGP_high_coverage_Illumina.chr4.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (2,086,491,071 bytes, modified 2022-04-25): 1588 SNPs
+  1kGP_high_coverage_Illumina.chr5.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (1,899,165,551 bytes, modified 2022-04-25): 1356 SNPs
+  1kGP_high_coverage_Illumina.chr6.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (1,878,333,223 bytes, modified 2022-04-25): 1302 SNPs
+  1kGP_high_coverage_Illumina.chr7.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (1,751,799,644 bytes, modified 2022-04-25): 1170 SNPs
+  1kGP_high_coverage_Illumina.chr8.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (1,617,138,777 bytes, modified 2022-04-25): 1077 SNPs
+  1kGP_high_coverage_Illumina.chr9.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (1,320,051,150 bytes, modified 2022-04-25): 897 SNPs
+  1kGP_high_coverage_Illumina.chr10.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (1,493,904,721 bytes, modified 2022-04-25): 1133 SNPs
+  1kGP_high_coverage_Illumina.chr11.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (1,444,152,921 bytes, modified 2022-04-25): 940 SNPs
+  1kGP_high_coverage_Illumina.chr12.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (1,418,304,697 bytes, modified 2022-04-25): 984 SNPs
+  1kGP_high_coverage_Illumina.chr13.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (1,073,594,120 bytes, modified 2022-04-25): 858 SNPs
+  1kGP_high_coverage_Illumina.chr14.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (966,241,761 bytes, modified 2022-04-25): 630 SNPs
+  1kGP_high_coverage_Illumina.chr15.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (885,687,136 bytes, modified 2022-04-25): 514 SNPs
+  1kGP_high_coverage_Illumina.chr16.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (961,378,545 bytes, modified 2022-04-25): 580 SNPs
+  1kGP_high_coverage_Illumina.chr17.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (861,943,967 bytes, modified 2022-04-25): 473 SNPs
+  1kGP_high_coverage_Illumina.chr18.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (834,387,264 bytes, modified 2022-04-25): 573 SNPs
+  1kGP_high_coverage_Illumina.chr19.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (717,737,562 bytes, modified 2022-04-25): 412 SNPs
+  1kGP_high_coverage_Illumina.chr20.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (687,320,087 bytes, modified 2022-04-25): 476 SNPs
+  1kGP_high_coverage_Illumina.chr21.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (427,136,458 bytes, modified 2022-04-25): 301 SNPs
+  1kGP_high_coverage_Illumina.chr22.filtered.SNV_INDEL_SV_phased_panel.vcf.gz  (445,701,977 bytes, modified 2022-04-25): 244 SNPs
+Match status: matched 19917, not_in_panel 59, allele_mismatch 6
+Unmatched (blank MAF):
+  rs113967143 chr1:164963860 A/G: not_in_panel
+  rs2644463 chr1:232759365 T/C: not_in_panel
+  rs111735218 chr2:81535629 G/A: not_in_panel
+  rs4851779 chr2:105507776 G/C: not_in_panel
+  rs57008286 chr2:105518544 A/G: not_in_panel
+  rs12616757 chr2:181745897 G/C: not_in_panel
+  rs111491545 chr2:186962817 A/G: not_in_panel
+  rs56406746 chr3:65979091 C/T: not_in_panel
+  rs111253905 chr3:151056580 C/T: allele_mismatch; panel has C>A
+  rs7617870 chr3:151830967 G/A: not_in_panel
+  rs6805428 chr3:194348413 T/C: not_in_panel
+  rs58432678 chr4:60635555 G/T: not_in_panel
+  rs73823151 chr4:63435934 C/T: not_in_panel
+  rs115007720 chr4:116771233 A/C: not_in_panel
+  rs202047397 chr4:188296962 A/G: allele_mismatch; panel has AAG>A
+  rs76110319 chr5:6519818 A/G: not_in_panel
+  rs1502049 chr5:13779826 T/C: not_in_panel
+  rs3103901 chr5:53833328 A/T: not_in_panel
+  rs62374889 chr5:86403435 G/A: not_in_panel
+  rs4279311 chr5:100271121 G/A: not_in_panel
+  rs76073467 chr5:160958715 C/T: not_in_panel
+  rs72821805 chr5:167653741 C/T: allele_mismatch; panel has C>G
+  rs116224593 chr5:178684757 G/C: not_in_panel
+  rs10947616 chr6:36652722 C/G: not_in_panel
+  rs116144821 chr6:66018231 T/C: not_in_panel
+  rs13198568 chr6:88991984 G/A: not_in_panel
+  rs189578402 chr6:168322009 G/A: not_in_panel
+  rs35430878 chr7:22240895 A/G: not_in_panel
+  rs79091895 chr8:61804982 T/C: not_in_panel
+  rs117283312 chr8:67611122 G/A: not_in_panel
+  rs139134890 chr8:104873775 G/A: not_in_panel
+  rs35919016 chr9:28414014 A/G: not_in_panel
+  rs76903768 chr10:1824552 T/C: not_in_panel
+  rs10905444 chr10:8675564 A/G: not_in_panel
+  rs72805973 chr10:64640570 C/A: not_in_panel
+  rs3008331 chr10:133283595 G/A: not_in_panel
+  rs111283621 chr11:1960393 T/C: not_in_panel
+  rs2251375 chr11:1998266 C/A: not_in_panel
+  rs3867254 chr11:56702127 A/G: not_in_panel
+  rs4435009 chr11:67684874 T/C: not_in_panel
+  rs1612659 chr11:73124258 T/C: not_in_panel
+  rs7124121 chr11:86595055 C/A: not_in_panel
+  rs140715936 chr12:41862052 A/C: allele_mismatch; panel has A>G
+  rs143266115 chr12:93331189 A/C: not_in_panel
+  rs35235037 chr13:31963267 A/G: allele_mismatch; panel has AC>A
+  rs7989038 chr13:45694260 A/G: not_in_panel
+  rs1189440 chr13:95081778 G/A: not_in_panel
+  rs12860478 chr13:111692180 A/T: not_in_panel
+  rs8006487 chr14:70545217 G/A: not_in_panel
+  rs2573619 chr15:99926370 G/A: not_in_panel
+  rs12450137 chr17:41051501 A/G: not_in_panel
+  rs622950 chr17:41123801 T/A: not_in_panel
+  rs56811824 chr18:62158979 C/T: not_in_panel
+  rs10424266 chr19:29401785 G/A: not_in_panel
+  rs6054990 chr20:7420183 T/C: not_in_panel
+  rs4920039 chr21:43095236 T/C: not_in_panel
+  rs75243451 chr21:43541774 C/T: not_in_panel
+  rs35538274 chr21:44145955 T/C: not_in_panel
+  rs2838498 chr21:44146186 G/T: not_in_panel
+  rs35787099 chr21:44177153 C/T: not_in_panel
+  rs12483372 chr21:44199484 C/A: not_in_panel
+  rs113442233 chr21:44214143 C/T: not_in_panel
+  rs111167534 chr21:45484168 A/G: not_in_panel
+  rs2277834 chr22:18923032 C/T: not_in_panel
+  rs17733539 chr22:33684585 C/A: allele_mismatch; panel has C>T
+eur_maf: min 0.001; 20/40/50/60/80th pct 0.043 / 0.105 / 0.150 / 0.204 / 0.337; max 0.500; below 0.01: 293
+Compared with the GWAS column 'a1_freq_controls' (19917 SNPs):
+  Pearson r (a1 frequency) 0.9984; r (MAF) 0.9948
+  |difference| median 0.0080, max 0.5100; > 0.05: 83; > 0.10: 4
+    rs6723108: 1000G EUR 0.348 vs GWAS 0.458
+    rs313528: 1000G EUR 0.605 vs GWAS 0.734
+    10:31963157_T_G: 1000G EUR 0.363 vs GWAS 0.141
+    rs12560780: 1000G EUR 0.999 vs GWAS 0.489
+Written: phase1/data/pool_candidates_scz_20k_hg38.features.tsv
