@@ -1,0 +1,19 @@
+{
+  "distance": "body",
+  "maf_edges": [
+    0.18807179999999998,
+    0.2817096,
+    0.3522866,
+    0.43240559999999995
+  ],
+  "dist_edges_bp": [
+    0.5,
+    21737.5,
+    77659.0,
+    330415.5
+  ],
+  "source": "phase1/data/scz_pgc3_lead_snps_hg38.features.tsv",
+  "n_snps": 173,
+  "created": "2026-11-24T22:15:15",
+  "rule": "inner edges; a value equal to an edge goes to the upper bin; bins numbered from 1"
+}
