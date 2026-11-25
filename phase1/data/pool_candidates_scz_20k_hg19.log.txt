@@ -1,0 +1,16 @@
+sample_pool_candidates.py  2026-11-24T22:33:41
+GWAS: phase1/data/PGC3_SCZ_european.vcf.tsv.gz  (239,710,564 bytes, md5 6ebe2376f5cda972d37efa0f214c4df0)
+Leads: phase1/data/scz_pgc3_lead_snps_hg38.tsv (173; columns chr_hg19/pos_hg19); window +/- 1,000,000 bp
+MHC excluded: chr6:25,000,000-34,000,000
+Columns: CHROM, ID, POS, A1, A2, FCAS, FCON, IMPINFO, BETA, SE, PVAL, NCAS, NCON, NEFF
+INFO filter: >= 0.9 on IMPINFO
+Rows read: 7,659,767
+  removed, p <= min-p or missing: 4,555,457
+  removed, not SNV: 0
+  removed, not autosomal: 0
+  removed, MAF < min or missing: 0
+  removed, INFO < min or missing: 566,767
+  removed, in MHC: 7,920
+  removed, near a lead: 255,748
+Eligible: 2,273,875; sampled 20,000 (seed 2026)
+Written: phase1/data/pool_candidates_scz_20k_hg19.tsv

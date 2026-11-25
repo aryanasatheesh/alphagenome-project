@@ -1,0 +1,13 @@
+date              : 2026-11-24T22:33:51
+command           : phase1/liftover_to_hg38.py --input phase1/data/pool_candidates_scz_20k_hg19.tsv --output phase1/data/pool_candidates_scz_20k_hg38.tsv --allow-failures
+input             : phase1/data/pool_candidates_scz_20k_hg19.tsv
+output            : phase1/data/pool_candidates_scz_20k_hg38.tsv
+chain file        : hg19ToHg38.over.chain.gz
+chain md5         : 35887f73fe5e2231656504d1f6430900
+pyliftover version: 0.4.1
+python version    : 3.12.10
+snps in           : 20000
+  lifted          : 19982
+  unmapped        : 10
+  alt_contig      : 3
+  strand_flip     : 5
