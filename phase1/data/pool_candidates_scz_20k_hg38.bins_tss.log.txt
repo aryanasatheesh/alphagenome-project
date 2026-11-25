@@ -1,0 +1,81 @@
+assign_bins.py  2026-11-24T22:49:07
+Input: phase1/data/pool_candidates_scz_20k_hg38.features.tsv  (19982 SNPs); distance = tss
+MAF fallback: rs113967143 uses a1_freq_controls (MAF 0.022)
+MAF fallback: rs2644463 uses a1_freq_controls (MAF 0.085)
+MAF fallback: rs111735218 uses a1_freq_controls (MAF 0.068)
+MAF fallback: rs4851779 uses a1_freq_controls (MAF 0.161)
+MAF fallback: rs57008286 uses a1_freq_controls (MAF 0.067)
+MAF fallback: rs12616757 uses a1_freq_controls (MAF 0.014)
+MAF fallback: rs111491545 uses a1_freq_controls (MAF 0.064)
+MAF fallback: rs56406746 uses a1_freq_controls (MAF 0.490)
+MAF fallback: rs111253905 uses a1_freq_controls (MAF 0.027)
+MAF fallback: rs7617870 uses a1_freq_controls (MAF 0.422)
+MAF fallback: rs6805428 uses a1_freq_controls (MAF 0.280)
+MAF fallback: rs58432678 uses a1_freq_controls (MAF 0.125)
+MAF fallback: rs73823151 uses a1_freq_controls (MAF 0.161)
+MAF fallback: rs115007720 uses a1_freq_controls (MAF 0.025)
+MAF fallback: rs202047397 uses a1_freq_controls (MAF 0.015)
+MAF fallback: rs76110319 uses a1_freq_controls (MAF 0.216)
+MAF fallback: rs1502049 uses a1_freq_controls (MAF 0.277)
+MAF fallback: rs3103901 uses a1_freq_controls (MAF 0.449)
+MAF fallback: rs62374889 uses a1_freq_controls (MAF 0.126)
+MAF fallback: rs4279311 uses a1_freq_controls (MAF 0.015)
+MAF fallback: rs76073467 uses a1_freq_controls (MAF 0.052)
+MAF fallback: rs72821805 uses a1_freq_controls (MAF 0.028)
+MAF fallback: rs116224593 uses a1_freq_controls (MAF 0.014)
+MAF fallback: rs10947616 uses a1_freq_controls (MAF 0.208)
+MAF fallback: rs116144821 uses a1_freq_controls (MAF 0.224)
+MAF fallback: rs13198568 uses a1_freq_controls (MAF 0.370)
+MAF fallback: rs189578402 uses a1_freq_controls (MAF 0.204)
+MAF fallback: rs35430878 uses a1_freq_controls (MAF 0.095)
+MAF fallback: rs79091895 uses a1_freq_controls (MAF 0.024)
+MAF fallback: rs117283312 uses a1_freq_controls (MAF 0.019)
+MAF fallback: rs139134890 uses a1_freq_controls (MAF 0.018)
+MAF fallback: rs35919016 uses a1_freq_controls (MAF 0.378)
+MAF fallback: rs76903768 uses a1_freq_controls (MAF 0.015)
+MAF fallback: rs10905444 uses a1_freq_controls (MAF 0.199)
+MAF fallback: rs72805973 uses a1_freq_controls (MAF 0.070)
+MAF fallback: rs3008331 uses a1_freq_controls (MAF 0.102)
+MAF fallback: rs111283621 uses a1_freq_controls (MAF 0.065)
+MAF fallback: rs2251375 uses a1_freq_controls (MAF 0.306)
+MAF fallback: rs3867254 uses a1_freq_controls (MAF 0.483)
+MAF fallback: rs4435009 uses a1_freq_controls (MAF 0.045)
+MAF fallback: rs1612659 uses a1_freq_controls (MAF 0.242)
+MAF fallback: rs7124121 uses a1_freq_controls (MAF 0.327)
+MAF fallback: rs140715936 uses a1_freq_controls (MAF 0.013)
+MAF fallback: rs143266115 uses a1_freq_controls (MAF 0.082)
+MAF fallback: rs35235037 uses a1_freq_controls (MAF 0.299)
+MAF fallback: rs7989038 uses a1_freq_controls (MAF 0.477)
+MAF fallback: rs1189440 uses a1_freq_controls (MAF 0.046)
+MAF fallback: rs12860478 uses a1_freq_controls (MAF 0.368)
+MAF fallback: rs8006487 uses a1_freq_controls (MAF 0.089)
+MAF fallback: rs2573619 uses a1_freq_controls (MAF 0.351)
+MAF fallback: rs12450137 uses a1_freq_controls (MAF 0.162)
+MAF fallback: rs622950 uses a1_freq_controls (MAF 0.018)
+MAF fallback: rs56811824 uses a1_freq_controls (MAF 0.317)
+MAF fallback: rs10424266 uses a1_freq_controls (MAF 0.054)
+MAF fallback: rs6054990 uses a1_freq_controls (MAF 0.189)
+MAF fallback: rs4920039 uses a1_freq_controls (MAF 0.451)
+MAF fallback: rs75243451 uses a1_freq_controls (MAF 0.028)
+MAF fallback: rs35538274 uses a1_freq_controls (MAF 0.186)
+MAF fallback: rs2838498 uses a1_freq_controls (MAF 0.186)
+MAF fallback: rs35787099 uses a1_freq_controls (MAF 0.102)
+MAF fallback: rs12483372 uses a1_freq_controls (MAF 0.209)
+MAF fallback: rs113442233 uses a1_freq_controls (MAF 0.096)
+MAF fallback: rs111167534 uses a1_freq_controls (MAF 0.290)
+MAF fallback: rs2277834 uses a1_freq_controls (MAF 0.187)
+MAF fallback: rs17733539 uses a1_freq_controls (MAF 0.098)
+Edges from phase1/data/bins_scz_leads_tss.json (made from phase1/data/scz_pgc3_lead_snps_hg38.features.tsv, n = 173)
+  MAF edges: 0.188 / 0.282 / 0.352 / 0.432
+  |TSS| edges (bp): 11,087 / 39,618 / 110,339 / 348,772
+
+Leads per bin (rows: distance, 1 = nearest; columns: MAF, 1 = rarest):
+                            M1    M2    M3    M4    M5   total
+  D1 < 11 kb              1288   343   235   215   185    2266
+  D2 11-40 kb             2096   584   357   378   313    3728
+  D3 40-110 kb            2635   708   410   463   393    4609
+  D4 110-349 kb           2979   749   485   515   403    5131
+  D5 > 349 kb             2469   637   379   434   329    4248
+  total                  11467  3021  1866  2005  1623   19982
+Cells: 25; empty 0; with 1 lead 0; leads per occupied cell median 434, max 2979
+Written: phase1/data/pool_candidates_scz_20k_hg38.bins_tss.tsv
